@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
+<meta name="theme-color" content="#050b0a">
+<meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <title>SmokeLess</title>
 <style>
-:root{--bg:#eef3f4;--card:#fff;--ink:#14232b;--mut:#5d7079;--line:#d9e3e6;--acc:#0f766e;--accink:#fff;--soft:#dff1ee;--warn:#b45309;--sh:0 1px 2px rgba(20,35,43,.06),0 8px 24px -12px rgba(20,35,43,.18);--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-@media(prefers-color-scheme:dark){:root{--bg:#0d1a22;--card:#14252f;--ink:#e6eef0;--mut:#8fa5ae;--line:#223843;--acc:#6fd6c1;--accink:#06231e;--soft:#16373a;--warn:#f0b35a;--sh:none}}
+:root{color-scheme:dark;--bg:#050b0a;--card:#0b1311;--btn:#28332d;--ink:#f1f5f2;--mut:#9aa89f;--line:#2f3b35;--acc:#4a7c4f;--hi:#8fd19a;--accink:#fff;--soft:#17261d;--warn:#e0a458;--sh:none;--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);padding-top:env(safe-area-inset-top)}
@@ -21,18 +21,18 @@ h1{font:600 15px var(--sans);margin:0;color:var(--mut)}
 .num{font:400 112px/1 var(--serif);letter-spacing:-3px}
 .sub{color:var(--mut);margin-top:4px}
 .strip{position:relative;height:30px;margin:20px 6px 4px;border-bottom:2px solid var(--line)}
-.tick{position:absolute;bottom:0;width:4px;height:22px;border-radius:3px;background:var(--acc);transform:translateX(-2px)}
+.tick{position:absolute;bottom:0;width:4px;height:22px;border-radius:3px;background:var(--hi);transform:translateX(-2px)}
 .tick.b{opacity:.45}
 .scale{display:flex;justify-content:space-between;color:var(--mut);font-size:12px;margin:0 6px}
 .log{display:block;width:100%;border:0;border-radius:26px;background:var(--acc);color:var(--accink);font:600 22px var(--sans);padding:26px;margin:4px 0 12px;box-shadow:0 10px 24px -10px var(--acc)}
 .log:active{transform:scale(.98)}
 .row{display:flex;gap:10px;margin-bottom:14px}
-.btn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:14px;font:500 15px var(--sans)}
+.btn{flex:1;border:1px solid var(--line);background:var(--btn);color:var(--ink);border-radius:16px;padding:14px;font:500 15px var(--sans)}
 .btn.p{background:var(--acc);color:var(--accink);border-color:var(--acc)}
 .btn.d{color:var(--warn)}
 .list .it{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line)}
 .list .it:last-child{border:0}
-.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--acc)}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--hi)}
 .chip.w{background:transparent;border:1px solid var(--warn);color:var(--warn)}
 .cf{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0}
 .cf .btn{flex:0 0 auto;padding:10px 14px}
@@ -42,12 +42,14 @@ label{display:block;margin:12px 0 4px;color:var(--mut);font-size:14px}
 input{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;border:0;background:none;color:var(--mut);font:500 14px var(--sans);padding:16px 0}
-nav button.on{color:var(--acc);font-weight:700}
+nav button.on{color:var(--hi);font-weight:700}
 dialog{border:0;border-radius:22px;padding:20px;background:var(--card);color:var(--ink);width:min(92vw,400px)}
 dialog::backdrop{background:rgba(5,15,20,.55)}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:488px;margin:auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:13px 16px;display:flex;justify-content:space-between;gap:12px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1;pointer-events:auto}
 #toast button{background:none;border:0;color:inherit;font:700 15px var(--sans);text-decoration:underline}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:12px 0}.bar i{display:block;height:100%;background:var(--hi)}.hist{display:flex;align-items:flex-end;gap:2px;height:70px;margin-top:12px}.hist i{flex:1;background:var(--hi);border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
+nav button.dot::after{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:middle}
 [hidden]{display:none!important}
 .empty{color:var(--mut);text-align:center;padding:14px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -58,11 +60,7 @@ dialog::backdrop{background:rgba(5,15,20,.55)}
 <div class="top"><h1>SmokeLess</h1><span id="date" class="sub"></span></div>
 
 <section id="v-today">
-  <div id="nag" class="card" hidden>
-    <b>Back up your data</b>
-    <div class="sub">Last export was more than a week ago. Clearing browser data erases everything here.</div>
-    <div class="row" style="margin:12px 0 0"><button class="btn p" data-a="exp">Export backup</button></div>
-  </div>
+  <div id="obsc"></div>
   <div id="pend"></div>
   <div class="card hero">
     <div class="num" id="cnt">0</div>
@@ -80,6 +78,7 @@ dialog::backdrop{background:rgba(5,15,20,.55)}
 
 <section id="v-hist" hidden>
   <div class="card" id="sum"></div>
+  <div class="card" id="pat"></div>
   <div class="card list" id="hlist"></div>
 </section>
 
@@ -92,6 +91,7 @@ dialog::backdrop{background:rgba(5,15,20,.55)}
     <label>Currency symbol</label><input id="s-cur" maxlength="3">
   </div>
   <div class="card">
+    <b>Backup</b><p class="sub" id="lastexp" style="margin:4px 0 12px"></p>
     <div class="row"><button class="btn" data-a="exp">Export JSON</button><button class="btn" data-a="csv">Export CSV</button></div>
     <button class="btn" style="width:100%" data-a="imp">Restore from backup</button>
     <input id="file" type="file" accept=".json,application/json" hidden>
@@ -128,7 +128,7 @@ let db,S={ev:[],conf:{},cfg:{cut:4,base:10,pack:20,price:0,cur:'₹',lastExp:0}}
 const tx=(s,m,f)=>new Promise((res,rej)=>{const t=db.transaction(s,m),o=f(t.objectStore(s));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error)});
 const openDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('smokeless',1);r.onupgradeneeded=()=>{r.result.createObjectStore('ev',{keyPath:'id',autoIncrement:true});r.result.createObjectStore('kv')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const kset=(k,v)=>tx('kv','readwrite',s=>s.put(v,k));
-const load=async()=>{S.ev=await tx('ev','readonly',s=>s.getAll());S.conf=(await tx('kv','readonly',s=>s.get('conf')))||{};Object.assign(S.cfg,await tx('kv','readonly',s=>s.get('cfg')))};
+const load=async()=>{S.ev=await tx('ev','readonly',s=>s.getAll());S.conf=(await tx('kv','readonly',s=>s.get('conf')))||{};Object.assign(S.cfg,await tx('kv','readonly',s=>s.get('cfg')));S.obs=(await tx('kv','readonly',s=>s.get('obs')))||null};
 
 /* ---- time helpers ---- */
 const offNow=t=>-new Date(t||Date.now()).getTimezoneOffset();
@@ -155,10 +155,14 @@ const A={
  back(){openM({t:Date.now(),off:offNow(),type:'cig',back:true},'Add a missed cigarette')},
  async crave(){const t=Date.now(),id=await add({t,off:offNow(t),type:'crave'});render();toast('Craving resisted. Well done.',async()=>{await rem(id);render()})},
  async confirm(){const k=this.dataset.k;S.conf[k]=true;await kset('conf',S.conf);render()},
- exp(){const o={v:1,exported:new Date().toISOString(),cfg:S.cfg,conf:S.conf,ev:S.ev};S.cfg.lastExp=Date.now();kset('cfg',S.cfg);dl('smokeless-'+todayK()+'.json','application/json',JSON.stringify(o,null,1));render()},
+ exp(){const o={v:1,exported:new Date().toISOString(),cfg:S.cfg,conf:S.conf,obs:S.obs,ev:S.ev};S.cfg.lastExp=Date.now();kset('cfg',S.cfg);dl('smokeless-'+todayK()+'.json','application/json',JSON.stringify(o,null,1));render()},
  csv(){const r=['id,time,type,backdated'].concat(S.ev.map(e=>[e.id,new Date(e.t).toISOString(),e.type,!!e.back].join(',')));dl('smokeless-'+todayK()+'.csv','text/csv',r.join('\n'))},
  imp(){$('#file').click()},
- async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});S.ev=[];S.conf={};render();toast('All data deleted')}
+ async obsStart(){const n=Math.min(60,Math.max(3,+$('#od').value||7));S.obs={start:todayK(),days:n,done:false};await kset('obs',S.obs);render();toast('Observation started for '+n+' days')},
+ async obsDone(){const o=S.obs,tk=todayK(),bd=byDay(),ks=Object.keys(S.conf).filter(k=>S.conf[k]&&k>=o.start&&k<tk),we=ks.some(k=>[0,6].includes(new Date(k+'T12:00:00').getDay()));
+  const msg=(ks.length<5||!we?'Only '+ks.length+' confirmed day'+(ks.length===1?'':'s')+(we?'':' and no weekend day')+' so far, so your pattern may be unreliable. ':'')+'Complete observation now?';
+  if(!confirm(msg))return;o.done=true;o.doneAt=Date.now();o.baseline=ks.length?ks.reduce((t,k)=>t+(bd[k]||0),0)/ks.length:null;await kset('obs',o);render();toast('Observation complete')},
+ async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});await kset('obs',null);S.obs=null;S.ev=[];S.conf={};render();toast('All data deleted')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a].call(b);const n=e.target.closest('[data-t]');if(n)show(n.dataset.t);const i=e.target.closest('[data-id]');if(i){const ev=S.ev.find(x=>x.id==i.dataset.id);if(ev)openM({...ev},'Edit time')}});
 
@@ -171,7 +175,7 @@ $('#md').onclick=async()=>{await rem(M.id);$('#dlg').close();render();toast('Del
 $('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
  try{const o=JSON.parse(await f.text());if(!Array.isArray(o.ev)||o.ev.some(x=>typeof x.t!=='number'||!x.type))throw 0;
   if(!confirm('Replace all current data with '+o.ev.length+' records from this backup?'))return;
-  await tx('ev','readwrite',s=>{s.clear();o.ev.forEach(x=>s.put(x))});await kset('conf',o.conf||{});Object.assign(S.cfg,o.cfg||{});await kset('cfg',S.cfg);await load();render();toast('Backup restored')}
+  await tx('ev','readwrite',s=>{s.clear();o.ev.forEach(x=>s.put(x))});await kset('conf',o.conf||{});await kset('obs',o.obs||null);Object.assign(S.cfg,o.cfg||{});await kset('cfg',S.cfg);await load();render();toast('Backup restored')}
  catch{toast('That file is not a valid SmokeLess backup')}};
 
 ['cut','base','pack','price'].forEach(k=>$('#s-'+k).onchange=async e=>{S.cfg[k]=Math.max(0,+e.target.value||0);await kset('cfg',S.cfg);render()});
@@ -183,9 +187,23 @@ function show(t){['today','hist','set'].forEach(x=>$('#v-'+x).hidden=x!==t);$$('
 function pending(){const c=cigs();if(!c.length)return[];const f=c.reduce((a,b)=>b.t<a.t?b:a),fk=dk(f.t,f.off),d=new Date(todayK()+'T12:00:00Z'),out=[];
  for(let i=0;i<60&&out.length<7;i++){d.setUTCDate(d.getUTCDate()-1);const k=d.toISOString().slice(0,10);if(k<fk)break;if(!S.conf[k])out.push(k)}return out}
 
+const dd=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
+let oH='';
+function obsUI(tk){const o=S.obs;let h;
+ if(!o)h='<div class="card"><b>Start observation</b><div class="sub">First, SmokeLess only watches your pattern. No limits, no targets. How many days should it observe?</div><div class="cf"><input id="od" type="number" min="3" max="60" value="7" style="max-width:90px"><button class="btn p" data-a="obsStart">Start observing</button></div></div>';
+ else if(!o.done){const x=dd(o.start,tk)+1,over=x>o.days,end=new Date(Date.parse(o.start)+(o.days-1)*864e5).toISOString().slice(0,10);
+  h=`<div class="card"><b>Observation · day ${Math.min(x,o.days)} of ${o.days}</b><div class="bar"><i style="width:${Math.round(Math.min(x,o.days)/o.days*100)}%"></i></div><div class="sub">${over?'The period is over. Complete it to set your baseline.':'Ends '+lab(end)+'. No limit applies yet.'}</div><div class="row" style="margin:12px 0 0"><button class="btn${over?' p':''}" data-a="obsDone">${over?'Complete observation':'Complete early'}</button></div></div>`}
+ else h=`<div class="card"><b>Observation complete</b><div class="sub">Your baseline is ${o.baseline!=null?o.baseline.toFixed(1):'unknown'} a day. The reduction plan arrives in the next update.</div></div>`;
+ if(h!==oH){oH=h;$('#obsc').innerHTML=h}}
+function pat(){const c=cigs().sort((a,b)=>a.t-b.t);if(c.length<3)return'<b>Your pattern</b><div class="sub">Log a few cigarettes and your pattern will appear here.</div>';
+ const hr=Array(24).fill(0);c.forEach(e=>hr[new Date(e.t+e.off*6e4).getUTCHours()]++);
+ const mx=Math.max(...hr);let bs=0,bi=0;for(let i=0;i<24;i++){const t=hr[i]+hr[(i+1)%24]+hr[(i+2)%24];if(t>bs){bs=t;bi=i}}
+ const g=[];for(let i=1;i<c.length;i++)if(dk(c[i].t,c[i].off)===dk(c[i-1].t,c[i-1].off))g.push((c[i].t-c[i-1].t)/6e4);g.sort((a,b)=>a-b);const md=g.length?g[g.length>>1]:0;
+ const f=h=>((h%12)||12)+(h%24<12?' am':' pm'),nc=Object.keys(S.conf).filter(k=>S.conf[k]).length;
+ return `<b>Your pattern</b>${nc<5?'<div class="sub">Based on only '+nc+' confirmed day'+(nc===1?'':'s')+'. Treat it as rough.</div>':''}<div class="hist">${hr.map(v=>`<i style="height:${v/mx*100}%"></i>`).join('')}</div><div class="scale" style="margin:4px 0 12px"><span>12 am</span><span>6 am</span><span>12 pm</span><span>6 pm</span><span>12 am</span></div><div class="stat"><span>Busiest stretch</span><b>${f(bi)} to ${f(bi+3)}</b></div>`+(md?`<div class="stat"><span>Typical gap</span><b>${Math.floor(md/60)}h ${Math.round(md%60)}m</b></div>`:'')}
 function render(){
  const bd=byDay(),tk=todayK(),n=bd[tk]||0,cp=cpc();
- $('#date').textContent=lab(tk);
+ $('#date').textContent=lab(tk);obsUI(tk);
  $('#cnt').textContent=n;
  $('#cntsub').textContent=n===1?'cigarette today':'cigarettes today'+(cp&&n?' · about '+S.cfg.cur+(n*cp).toFixed(0):'');
  const te=S.ev.filter(e=>dk(e.t,e.off)===tk).sort((a,b)=>b.t-a.t),tc=te.filter(e=>e.type==='cig');
@@ -194,12 +212,12 @@ function render(){
  $('#tlist').innerHTML=tc.length?tc.map(e=>`<div class="it" data-id="${e.id}"><span>${hm(e.t)}</span>${e.back?'<span class="chip w">backdated</span>':'<span class="sub">tap to edit</span>'}</div>`).join(''):'<div class="empty">Nothing logged yet today.</div>';
  const p=pending();
  $('#pend').innerHTML=p.length?`<div class="card"><b>Confirm past days</b><div class="sub">Only confirmed days count toward your progress.</div>`+p.slice(0,3).map(k=>`<div class="cf"><span>${lab(k)} · <b>${bd[k]||0}</b> logged</span><button class="btn p" data-a="confirm" data-k="${k}">${bd[k]?'Confirm':'Yes, zero'}</button></div>`).join('')+(p.length>3?`<div class="sub">${p.length-3} more earlier</div>`:'')+'</div>':'';
- $('#nag').hidden=!(S.ev.length&&Date.now()-S.cfg.lastExp>7*864e5);
+ const od=S.ev.length&&Date.now()-S.cfg.lastExp>7*864e5;$('#lastexp').textContent=S.cfg.lastExp?'Last export: '+new Date(S.cfg.lastExp).toLocaleDateString([],{day:'numeric',month:'short'})+(od?'. Time to export again.':''):'Never exported. Export weekly; clearing browser data erases everything.';$$('nav button')[2].classList.toggle('dot',!!od);
  // history
- const cd=Object.keys(S.conf).filter(k=>S.conf[k]&&k<tk),tot=cd.reduce((s,k)=>s+(bd[k]||0),0),avg=cd.length?tot/cd.length:0,sav=cd.reduce((s,k)=>s+(S.cfg.base-(bd[k]||0)),0)*cp;
- $('#sum').innerHTML=`<div class="stat"><span>Confirmed days</span><b>${cd.length}</b></div><div class="stat"><span>Average per confirmed day</span><b>${cd.length?avg.toFixed(1):'–'}</b></div><div class="stat"><span>Cravings resisted</span><b>${S.ev.filter(e=>e.type==='crave').length}</b></div>`+(cp&&cd.length?`<div class="stat"><span>${sav>=0?'Estimated saved':'Estimated extra spend'}</span><b>${money(sav)}</b></div><div class="sub">Estimate from your baseline of ${S.cfg.base} a day and pack price.</div>`:'');
+ const base=(S.obs&&S.obs.baseline!=null)?S.obs.baseline:S.cfg.base,cd=Object.keys(S.conf).filter(k=>S.conf[k]&&k<tk),tot=cd.reduce((s,k)=>s+(bd[k]||0),0),avg=cd.length?tot/cd.length:0,sav=cd.reduce((s,k)=>s+(base-(bd[k]||0)),0)*cp;
+ $('#sum').innerHTML=`<div class="stat"><span>Confirmed days</span><b>${cd.length}</b></div><div class="stat"><span>Average per confirmed day</span><b>${cd.length?avg.toFixed(1):'–'}</b></div><div class="stat"><span>Cravings resisted</span><b>${S.ev.filter(e=>e.type==='crave').length}</b></div>`+(cp&&cd.length?`<div class="stat"><span>${sav>=0?'Estimated saved':'Estimated extra spend'}</span><b>${money(sav)}</b></div><div class="sub">Estimate from your baseline of ${+base.toFixed(1)} a day and pack price.</div>`:'');
  const d=new Date(tk+'T12:00:00Z'),rows=[];for(let i=0;i<14;i++){const k=d.toISOString().slice(0,10);rows.push(`<div class="it"><span>${lab(k)}</span><span><b>${bd[k]||0}</b> ${k===tk?'<span class="chip">today</span>':S.conf[k]?'<span class="chip">confirmed</span>':'<span class="chip w">incomplete</span>'}</span></div>`);d.setUTCDate(d.getUTCDate()-1)}
- $('#hlist').innerHTML=rows.join('');
+ $('#hlist').innerHTML=rows.join('');$('#pat').innerHTML=pat();
  $('#s-cut').value=S.cfg.cut;$('#s-base').value=S.cfg.base;$('#s-pack').value=S.cfg.pack;$('#s-price').value=S.cfg.price||'';$('#s-cur').value=S.cfg.cur;
 }
 
