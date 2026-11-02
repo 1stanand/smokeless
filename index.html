@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>SmokeLess</title>
+<style>
+:root{--bg:#eef3f4;--card:#fff;--ink:#14232b;--mut:#5d7079;--line:#d9e3e6;--acc:#0f766e;--accink:#fff;--soft:#dff1ee;--warn:#b45309;--sh:0 1px 2px rgba(20,35,43,.06),0 8px 24px -12px rgba(20,35,43,.18);--serif:ui-serif,Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1a22;--card:#14252f;--ink:#e6eef0;--mut:#8fa5ae;--line:#223843;--acc:#6fd6c1;--accink:#06231e;--soft:#16373a;--warn:#f0b35a;--sh:none}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);padding-top:env(safe-area-inset-top)}
+main{max-width:520px;margin:0 auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom))}
+h1{font:600 15px var(--sans);margin:0;color:var(--mut)}
+.top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.card{background:var(--card);border-radius:22px;padding:18px;box-shadow:var(--sh);margin-bottom:14px;border:1px solid var(--line)}
+.hero{text-align:center;padding:26px 18px 20px}
+.num{font:400 112px/1 var(--serif);letter-spacing:-3px}
+.sub{color:var(--mut);margin-top:4px}
+.strip{position:relative;height:30px;margin:20px 6px 4px;border-bottom:2px solid var(--line)}
+.tick{position:absolute;bottom:0;width:4px;height:22px;border-radius:3px;background:var(--acc);transform:translateX(-2px)}
+.tick.b{opacity:.45}
+.scale{display:flex;justify-content:space-between;color:var(--mut);font-size:12px;margin:0 6px}
+.log{display:block;width:100%;border:0;border-radius:26px;background:var(--acc);color:var(--accink);font:600 22px var(--sans);padding:26px;margin:4px 0 12px;box-shadow:0 10px 24px -10px var(--acc)}
+.log:active{transform:scale(.98)}
+.row{display:flex;gap:10px;margin-bottom:14px}
+.btn{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:14px;font:500 15px var(--sans)}
+.btn.p{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.btn.d{color:var(--warn)}
+.list .it{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line)}
+.list .it:last-child{border:0}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--soft);color:var(--acc)}
+.chip.w{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+.cf{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0}
+.cf .btn{flex:0 0 auto;padding:10px 14px}
+.stat{display:flex;justify-content:space-between;padding:8px 0}
+.stat b{font-weight:600}
+label{display:block;margin:12px 0 4px;color:var(--mut);font-size:14px}
+input{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--mut);font:500 14px var(--sans);padding:16px 0}
+nav button.on{color:var(--acc);font-weight:700}
+dialog{border:0;border-radius:22px;padding:20px;background:var(--card);color:var(--ink);width:min(92vw,400px)}
+dialog::backdrop{background:rgba(5,15,20,.55)}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:488px;margin:auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:13px 16px;display:flex;justify-content:space-between;gap:12px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1;pointer-events:auto}
+#toast button{background:none;border:0;color:inherit;font:700 15px var(--sans);text-decoration:underline}
+[hidden]{display:none!important}
+.empty{color:var(--mut);text-align:center;padding:14px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>SmokeLess</h1><span id="date" class="sub"></span></div>
+
+<section id="v-today">
+  <div id="nag" class="card" hidden>
+    <b>Back up your data</b>
+    <div class="sub">Last export was more than a week ago. Clearing browser data erases everything here.</div>
+    <div class="row" style="margin:12px 0 0"><button class="btn p" data-a="exp">Export backup</button></div>
+  </div>
+  <div id="pend"></div>
+  <div class="card hero">
+    <div class="num" id="cnt">0</div>
+    <div class="sub" id="cntsub">cigarettes today</div>
+    <div class="strip" id="strip"></div>
+    <div class="scale"><span>4 am</span><span>10 am</span><span>4 pm</span><span>10 pm</span><span>4 am</span></div>
+  </div>
+  <button class="log" data-a="log">Log cigarette</button>
+  <div class="row">
+    <button class="btn" data-a="back">Add missed</button>
+    <button class="btn" data-a="crave">Craving resisted <span class="chip" id="crv">0</span></button>
+  </div>
+  <div class="card list" id="tlist"></div>
+</section>
+
+<section id="v-hist" hidden>
+  <div class="card" id="sum"></div>
+  <div class="card list" id="hlist"></div>
+</section>
+
+<section id="v-set" hidden>
+  <div class="card">
+    <label>Day starts at (hour, 0 to 8)</label><input id="s-cut" type="number" min="0" max="8">
+    <label>Cigarettes per day before you started (estimate)</label><input id="s-base" type="number" min="0">
+    <label>Cigarettes per pack</label><input id="s-pack" type="number" min="1">
+    <label>Price per pack</label><input id="s-price" type="number" min="0" step="0.01">
+    <label>Currency symbol</label><input id="s-cur" maxlength="3">
+  </div>
+  <div class="card">
+    <div class="row"><button class="btn" data-a="exp">Export JSON</button><button class="btn" data-a="csv">Export CSV</button></div>
+    <button class="btn" style="width:100%" data-a="imp">Restore from backup</button>
+    <input id="file" type="file" accept=".json,application/json" hidden>
+    <p class="sub">Your data lives only in this browser on this phone. Export weekly.</p>
+    <button class="btn d" style="width:100%" data-a="wipe">Delete all data</button>
+  </div>
+</section>
+</main>
+
+<nav>
+  <button class="on" data-t="today">Today</button>
+  <button data-t="hist">Days</button>
+  <button data-t="set">Settings</button>
+</nav>
+
+<div id="toast"><span id="tmsg"></span><button id="tund" hidden>Undo</button></div>
+
+<dialog id="dlg">
+  <b id="mt"></b>
+  <label>When did you smoke it?</label>
+  <input id="mi" type="datetime-local">
+  <div class="row" style="margin:16px 0 0">
+    <button class="btn d" id="md">Delete</button>
+    <button class="btn" id="mc">Cancel</button>
+    <button class="btn p" id="ms">Save</button>
+  </div>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let db,S={ev:[],conf:{},cfg:{cut:4,base:10,pack:20,price:0,cur:'₹',lastExp:0}},M=null,lastId=null,tT;
+
+/* ---- storage (IndexedDB) ---- */
+const tx=(s,m,f)=>new Promise((res,rej)=>{const t=db.transaction(s,m),o=f(t.objectStore(s));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error)});
+const openDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('smokeless',1);r.onupgradeneeded=()=>{r.result.createObjectStore('ev',{keyPath:'id',autoIncrement:true});r.result.createObjectStore('kv')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const kset=(k,v)=>tx('kv','readwrite',s=>s.put(v,k));
+const load=async()=>{S.ev=await tx('ev','readonly',s=>s.getAll());S.conf=(await tx('kv','readonly',s=>s.get('conf')))||{};Object.assign(S.cfg,await tx('kv','readonly',s=>s.get('cfg')))};
+
+/* ---- time helpers ---- */
+const offNow=t=>-new Date(t||Date.now()).getTimezoneOffset();
+const dk=(t,off)=>new Date(t+off*6e4-S.cfg.cut*36e5).toISOString().slice(0,10);
+const todayK=()=>dk(Date.now(),offNow());
+const hm=t=>new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const lab=k=>new Date(k+'T12:00:00').toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'});
+const loc=t=>new Date(t-new Date(t).getTimezoneOffset()*6e4).toISOString().slice(0,16);
+const cigs=()=>S.ev.filter(e=>e.type==='cig');
+const byDay=()=>{const m={};cigs().forEach(e=>{const k=dk(e.t,e.off);m[k]=(m[k]||0)+1});return m};
+const cpc=()=>S.cfg.price>0&&S.cfg.pack>0?S.cfg.price/S.cfg.pack:0;
+const money=v=>S.cfg.cur+Math.abs(v).toFixed(0);
+
+/* ---- actions ---- */
+async function add(e){e.entered=Date.now();const id=await tx('ev','readwrite',s=>s.add(e));e.id=id;S.ev.push(e);return id}
+async function upd(e){await tx('ev','readwrite',s=>s.put(e))}
+async function rem(id){await tx('ev','readwrite',s=>s.delete(id));S.ev=S.ev.filter(e=>e.id!==id)}
+function toast(msg,undo){clearTimeout(tT);$('#tmsg').textContent=msg;$('#tund').hidden=!undo;$('#tund').onclick=undo||null;$('#toast').classList.add('on');tT=setTimeout(()=>$('#toast').classList.remove('on'),5000)}
+function dl(name,type,txt){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click()}
+function openM(ev,title){M=ev;$('#mt').textContent=title;$('#mi').value=loc(ev.t);$('#md').hidden=!ev.id;$('#dlg').showModal()}
+
+const A={
+ async log(){const t=Date.now(),id=await add({t,off:offNow(t),type:'cig',back:false});render();toast('Logged at '+hm(t),async()=>{await rem(id);render();toast('Removed')})},
+ back(){openM({t:Date.now(),off:offNow(),type:'cig',back:true},'Add a missed cigarette')},
+ async crave(){const t=Date.now(),id=await add({t,off:offNow(t),type:'crave'});render();toast('Craving resisted. Well done.',async()=>{await rem(id);render()})},
+ async confirm(){const k=this.dataset.k;S.conf[k]=true;await kset('conf',S.conf);render()},
+ exp(){const o={v:1,exported:new Date().toISOString(),cfg:S.cfg,conf:S.conf,ev:S.ev};S.cfg.lastExp=Date.now();kset('cfg',S.cfg);dl('smokeless-'+todayK()+'.json','application/json',JSON.stringify(o,null,1));render()},
+ csv(){const r=['id,time,type,backdated'].concat(S.ev.map(e=>[e.id,new Date(e.t).toISOString(),e.type,!!e.back].join(',')));dl('smokeless-'+todayK()+'.csv','text/csv',r.join('\n'))},
+ imp(){$('#file').click()},
+ async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});S.ev=[];S.conf={};render();toast('All data deleted')}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a].call(b);const n=e.target.closest('[data-t]');if(n)show(n.dataset.t);const i=e.target.closest('[data-id]');if(i){const ev=S.ev.find(x=>x.id==i.dataset.id);if(ev)openM({...ev},'Edit time')}});
+
+$('#mc').onclick=()=>$('#dlg').close();
+$('#ms').onclick=async()=>{const t=new Date($('#mi').value).getTime();if(!t||t>Date.now()+6e4){toast('Pick a time that has already passed');return}
+ const was=M.t;M.t=t;M.off=offNow(t);if(M.id){if(Math.abs(t-was)>12e4)M.back=true;await upd(M);const i=S.ev.findIndex(x=>x.id===M.id);S.ev[i]=M}else await add(M);
+ $('#dlg').close();render();toast('Saved')};
+$('#md').onclick=async()=>{await rem(M.id);$('#dlg').close();render();toast('Deleted')};
+
+$('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+ try{const o=JSON.parse(await f.text());if(!Array.isArray(o.ev)||o.ev.some(x=>typeof x.t!=='number'||!x.type))throw 0;
+  if(!confirm('Replace all current data with '+o.ev.length+' records from this backup?'))return;
+  await tx('ev','readwrite',s=>{s.clear();o.ev.forEach(x=>s.put(x))});await kset('conf',o.conf||{});Object.assign(S.cfg,o.cfg||{});await kset('cfg',S.cfg);await load();render();toast('Backup restored')}
+ catch{toast('That file is not a valid SmokeLess backup')}};
+
+['cut','base','pack','price'].forEach(k=>$('#s-'+k).onchange=async e=>{S.cfg[k]=Math.max(0,+e.target.value||0);await kset('cfg',S.cfg);render()});
+$('#s-cur').onchange=async e=>{S.cfg.cur=e.target.value||'₹';await kset('cfg',S.cfg);render()};
+
+function show(t){['today','hist','set'].forEach(x=>$('#v-'+x).hidden=x!==t);$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));scrollTo(0,0)}
+
+/* ---- render ---- */
+function pending(){const c=cigs();if(!c.length)return[];const f=c.reduce((a,b)=>b.t<a.t?b:a),fk=dk(f.t,f.off),d=new Date(todayK()+'T12:00:00Z'),out=[];
+ for(let i=0;i<60&&out.length<7;i++){d.setUTCDate(d.getUTCDate()-1);const k=d.toISOString().slice(0,10);if(k<fk)break;if(!S.conf[k])out.push(k)}return out}
+
+function render(){
+ const bd=byDay(),tk=todayK(),n=bd[tk]||0,cp=cpc();
+ $('#date').textContent=lab(tk);
+ $('#cnt').textContent=n;
+ $('#cntsub').textContent=n===1?'cigarette today':'cigarettes today'+(cp&&n?' · about '+S.cfg.cur+(n*cp).toFixed(0):'');
+ const te=S.ev.filter(e=>dk(e.t,e.off)===tk).sort((a,b)=>b.t-a.t),tc=te.filter(e=>e.type==='cig');
+ $('#crv').textContent=S.ev.filter(e=>e.type==='crave').length;
+ $('#strip').innerHTML=tc.map(e=>{const d=new Date(e.t+e.off*6e4),m=((d.getUTCHours()*60+d.getUTCMinutes())-S.cfg.cut*60+1440)%1440;return`<i class="tick${e.back?' b':''}" style="left:${m/14.4}%"></i>`}).join('');
+ $('#tlist').innerHTML=tc.length?tc.map(e=>`<div class="it" data-id="${e.id}"><span>${hm(e.t)}</span>${e.back?'<span class="chip w">backdated</span>':'<span class="sub">tap to edit</span>'}</div>`).join(''):'<div class="empty">Nothing logged yet today.</div>';
+ const p=pending();
+ $('#pend').innerHTML=p.length?`<div class="card"><b>Confirm past days</b><div class="sub">Only confirmed days count toward your progress.</div>`+p.slice(0,3).map(k=>`<div class="cf"><span>${lab(k)} · <b>${bd[k]||0}</b> logged</span><button class="btn p" data-a="confirm" data-k="${k}">${bd[k]?'Confirm':'Yes, zero'}</button></div>`).join('')+(p.length>3?`<div class="sub">${p.length-3} more earlier</div>`:'')+'</div>':'';
+ $('#nag').hidden=!(S.ev.length&&Date.now()-S.cfg.lastExp>7*864e5);
+ // history
+ const cd=Object.keys(S.conf).filter(k=>S.conf[k]&&k<tk),tot=cd.reduce((s,k)=>s+(bd[k]||0),0),avg=cd.length?tot/cd.length:0,sav=cd.reduce((s,k)=>s+(S.cfg.base-(bd[k]||0)),0)*cp;
+ $('#sum').innerHTML=`<div class="stat"><span>Confirmed days</span><b>${cd.length}</b></div><div class="stat"><span>Average per confirmed day</span><b>${cd.length?avg.toFixed(1):'–'}</b></div><div class="stat"><span>Cravings resisted</span><b>${S.ev.filter(e=>e.type==='crave').length}</b></div>`+(cp&&cd.length?`<div class="stat"><span>${sav>=0?'Estimated saved':'Estimated extra spend'}</span><b>${money(sav)}</b></div><div class="sub">Estimate from your baseline of ${S.cfg.base} a day and pack price.</div>`:'');
+ const d=new Date(tk+'T12:00:00Z'),rows=[];for(let i=0;i<14;i++){const k=d.toISOString().slice(0,10);rows.push(`<div class="it"><span>${lab(k)}</span><span><b>${bd[k]||0}</b> ${k===tk?'<span class="chip">today</span>':S.conf[k]?'<span class="chip">confirmed</span>':'<span class="chip w">incomplete</span>'}</span></div>`);d.setUTCDate(d.getUTCDate()-1)}
+ $('#hlist').innerHTML=rows.join('');
+ $('#s-cut').value=S.cfg.cut;$('#s-base').value=S.cfg.base;$('#s-pack').value=S.cfg.pack;$('#s-price').value=S.cfg.price||'';$('#s-cur').value=S.cfg.cur;
+}
+
+(async()=>{db=await openDB();await load();render();
+ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+ setInterval(()=>{if(!document.hidden)render()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()})})();
+</script>
+</body>
+</html>
