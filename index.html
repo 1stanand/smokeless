@@ -43,7 +43,7 @@ input{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1p
 nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;border:0;background:none;color:var(--mut);font:500 14px var(--sans);padding:16px 0}
 nav button.on{color:var(--hi);font-weight:700}
-dialog{border:0;border-radius:22px;padding:20px;background:var(--card);color:var(--ink);width:min(92vw,400px)}
+dialog{max-height:88vh;overflow:auto;border:0;border-radius:22px;padding:20px;background:var(--card);color:var(--ink);width:min(92vw,400px)}
 dialog::backdrop{background:rgba(5,15,20,.55)}
 #toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:488px;margin:auto;background:var(--ink);color:var(--bg);border-radius:14px;padding:13px 16px;display:flex;justify-content:space-between;gap:12px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1;pointer-events:auto}
@@ -52,6 +52,7 @@ dialog::backdrop{background:rgba(5,15,20,.55)}
 nav button.dot::after{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:middle}
 .hero{transition:background .3s}.st{margin-top:10px;font-weight:600}.hero.g{background:#102a1b;border-color:#3a7d51}.hero.a{background:#2a2111;border-color:#8a6a24}.hero.r{background:#2c1614;border-color:#9a4a42}.stk{display:flex;flex-direction:column;gap:8px;margin-top:12px}.stk .btn{flex:none}
 select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink)}
+.tap{cursor:pointer}.tap:active{opacity:.85}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips button{border:1px solid var(--line);background:var(--btn);color:var(--ink);border-radius:99px;padding:8px 13px;font:14px var(--sans)}.chips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
 [hidden]{display:none!important}
 .empty{color:var(--mut);text-align:center;padding:14px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -68,18 +69,22 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
     <div class="num" id="cnt">0</div>
     <div class="sub" id="cntsub">cigarettes today</div>
     <div class="st" id="st"></div>
+    <div class="sub" id="since"></div>
     <div class="strip" id="strip"></div>
     <div class="scale"><span>4 am</span><span>10 am</span><span>4 pm</span><span>10 pm</span><span>4 am</span></div>
   </div>
   <button class="log" data-a="log">Log cigarette</button>
+  <div id="cb" class="card" hidden><b>What was happening?</b><div class="chips" id="cbx"></div><div class="sub" style="margin-top:12px">Mood or urge</div><div class="chips" id="cbm"></div><div class="row" style="margin:12px 0 0"><button class="btn" data-a="cbDone">Done</button></div></div>
   <div class="row">
     <button class="btn" data-a="back">Add missed</button>
-    <button class="btn" data-a="crave">Craving resisted <span class="chip" id="crv">0</span></button>
+    <button class="btn" data-a="undo" id="undo">Undo last</button>
   </div>
+  <div class="row"><button class="btn" data-a="crave">Craving resisted <span class="chip" id="crv">0</span></button></div>
   <div class="card list" id="tlist"></div>
 </section>
 
 <section id="v-hist" hidden>
+  <div class="card" id="gr"></div>
   <div class="card" id="wk" hidden></div>
   <div class="card" id="sum"></div>
   <div class="card" id="pat"></div>
@@ -104,7 +109,7 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
     <button class="btn" style="width:100%" data-a="imp">Restore from backup</button>
     <input id="file" type="file" accept=".json,application/json" hidden>
     <p class="sub">Your data lives only in this browser on this phone. Export weekly.</p>
-    <button class="btn d" style="width:100%" data-a="wipe">Delete all data</button>
+    <button class="btn" style="width:100%" data-a="edit">Edit observation, phases and data</button>
   </div>
 </section>
 </main>
@@ -117,6 +122,12 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
 
 <div id="toast"><span id="tmsg"></span><button id="tctx" hidden>Context</button><button id="tund" hidden>Undo</button></div>
 
+<dialog id="pdlg"><b id="pt"></b><div id="pb"></div><label>Reason (required)</label><input id="pr" maxlength="80"><div class="sub" id="pe" style="color:var(--warn)"></div><div class="stk" id="pa"></div><div class="stk"><button class="btn" id="px">Close</button></div></dialog>
+<dialog id="edlg"><b>Edit records</b>
+ <div id="eo"><label>Observation start date</label><input id="eos" type="date"><label>Observation days</label><input id="eod" type="number" min="3" max="90"></div>
+ <div id="ep"><label>Current phase: daily limit</label><input id="epl" type="number" min="0"><label>Current phase: days (0 = ongoing)</label><input id="epd" type="number" min="0"><label>Current phase: start date</label><input id="eps" type="date"></div>
+ <label>Reason (required)</label><input id="erz" maxlength="80"><div class="sub" id="ee" style="color:var(--warn)"></div>
+ <div class="stk"><button class="btn p" id="esv">Save changes</button><button class="btn" id="ero">Reopen observation</button><button class="btn d" id="edl">Delete all data</button><button class="btn" id="ecl">Close</button></div></dialog>
 <dialog id="dlg">
   <b id="mt"></b>
   <label>When did you smoke it?</label>
@@ -132,7 +143,7 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
 
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-let db,S={ev:[],conf:{},cfg:{cut:4,base:10,pack:20,price:0,cur:'₹',lastExp:0}},M=null,lastId=null,tT;
+let db,S={ev:[],conf:{},cfg:{cut:4,base:10,pack:20,price:0,cur:'₹',lastExp:0}},M=null,lastId=null,tT,CB=null,GR=14;
 
 /* ---- storage (IndexedDB) ---- */
 const tx=(s,m,f)=>new Promise((res,rej)=>{const t=db.transaction(s,m),o=f(t.objectStore(s));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error)});
@@ -161,7 +172,7 @@ function dl(name,type,txt){const a=document.createElement('a');a.href=URL.create
 function openM(ev,title){M=ev;$('#mx').value=ev.ctx||'';$('#mm').value=ev.mood||'';$('#mt').textContent=title;$('#mi').value=loc(ev.t);$('#md').hidden=!ev.id;$('#dlg').showModal()}
 
 const A={
- async log(){const t=Date.now(),id=await add({t,off:offNow(t),type:'cig',back:false});render();toast('Logged at '+hm(t),async()=>{await rem(id);render();toast('Removed')},()=>{$('#toast').classList.remove('on');openM({...S.ev.find(x=>x.id===id)},'Add context')})},
+ async log(){const t=Date.now(),id=await add({t,off:offNow(t),type:'cig',back:false});CB=id;render();toast('Logged at '+hm(t),async()=>{await rem(id);render();toast('Removed')},()=>{$('#toast').classList.remove('on');openM({...S.ev.find(x=>x.id===id)},'Add context')})},
  back(){openM({t:Date.now(),off:offNow(),type:'cig',back:true},'Add a missed cigarette')},
  async crave(){const t=Date.now(),id=await add({t,off:offNow(t),type:'crave'});render();toast('Craving resisted. Well done.',async()=>{await rem(id);render()})},
  async confirm(){const k=this.dataset.k;S.conf[k]=true;await kset('conf',S.conf);render()},
@@ -178,9 +189,20 @@ const A={
  async phaseBack(){const a=att(),v=S.att.slice(0,-1).reverse().find(x=>x.allow>a.allow);if(!v)return;await endA('rolled back');await startA(v.allow,v.days||7,a.id)},
  async relKeep(){att().rd=todayK();await kset('att',S.att);render()},
  async fb(){const r=this.dataset.r;if(r)S.adj.push({t:Date.now(),txt:'You noted: '+r});S.cfg.fbT=Date.now();await kset('cfg',S.cfg);await kset('adj',S.adj);render()},
+ pObs(){const o=S.obs,tk=todayK(),x=dd(o.start,tk)+1,bd=byDay(),ks=Object.keys(S.conf).filter(k=>S.conf[k]&&k>=o.start&&k<tk),we=ks.some(k=>[0,6].includes(new Date(k+'T12:00:00').getDay()));
+  pop('Observation',`<div class="sub">Day ${Math.min(x,o.days)} of ${o.days} · ${ks.length} confirmed day${ks.length===1?'':'s'}.${ks.length<5||!we?' Your pattern may still be unreliable (it needs 5+ confirmed days including a weekend).':''}</div><label>Extend by (days)</label><input id="ex" type="number" min="1" max="30" value="3">`,
+  [['Complete observation','p',async r=>{o.done=true;o.doneAt=Date.now();o.baseline=ks.length?ks.reduce((t,k)=>t+(bd[k]||0),0)/ks.length:null;await kset('obs',o);await logAdj('Observation completed. Reason: '+r)}],
+   ['Extend observation','',async r=>{const n=Math.max(1,+$('#ex').value||3);o.days+=n;await kset('obs',o);await logAdj('Observation extended by '+n+' days. Reason: '+r)}]])},
+ pPhase(){const a=att(),tk=todayK(),c=score(a,tk),x=dd(a.start,tk)+1,due=a.days>0&&x>a.days,pv=S.att.slice(0,-1).reverse().find(v=>v.allow>a.allow),rec=due&&c.pct!=null&&c.pct>=80?Math.max(0,a.allow-Math.max(1,Math.round(a.allow*.1))):a.allow;
+  pop(due?'Phase complete':'Manage this phase',`<div class="sub">${c.pct==null?'No confirmed days yet.':'Consumption '+c.pct+'% ('+c.ok+' of '+c.el+' days)'+(c.adh!=null?' · Schedule '+c.adh+'%':'')}</div>${due?'<div class="sub">'+(c.pct==null?'Confirm past days first.':c.pct>=80?'80% or better, so a lower limit is suggested.':'Under 80%, so repeating is suggested.')+'</div>':''}<label>Daily limit</label><input id="na" type="number" min="0" value="${rec}"><label>Days</label><input id="nd" type="number" min="3" value="${a.days||7}">`,
+  [['Apply these numbers','p',async r=>{const na=Math.max(0,+$('#na').value||0),nd=na?Math.max(3,+$('#nd').value||7):0;await endA(na<a.allow?'advanced':na===a.allow?'repeated':'adjusted up',r);await startA(na,nd,a.id)}],
+   ['Repeat this phase','',async r=>{await endA('repeated',r);await startA(a.allow,a.days,a.id)}]].concat(pv?[['Go back to limit '+pv.allow,'',async r=>{await endA('rolled back',r);await startA(pv.allow,pv.days||7,a.id)}]]:[]))},
+ async undo(){const e=S.ev.reduce((m,x)=>!m||(x.entered||x.t)>(m.entered||m.t)?x:m,null);if(!e)return;await rem(e.id);if(CB===e.id)CB=null;render();toast('Removed '+(e.type==='cig'?'cigarette':'craving')+' from '+hm(e.t))},
+ cbDone(){CB=null;render()},
+ edit(){const o=S.obs,a=att();$('#ee').textContent='';$('#erz').value='';$('#eo').hidden=!o;$('#ep').hidden=!a;$('#ero').hidden=!(o&&o.done);if(o){$('#eos').value=o.start;$('#eod').value=o.days}if(a){$('#epl').value=a.allow;$('#epd').value=a.days;$('#eps').value=a.start}$('#edlg').showModal()},
  async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});await kset('obs',null);S.obs=null;await kset('att',[]);S.att=[];await kset('adj',[]);S.adj=[];S.ev=[];S.conf={};render();toast('All data deleted')}
 };
-document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a].call(b);const n=e.target.closest('[data-t]');if(n)show(n.dataset.t);const i=e.target.closest('[data-id]');if(i){const ev=S.ev.find(x=>x.id==i.dataset.id);if(ev)openM({...ev},'Edit time')}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a].call(b);const n=e.target.closest('[data-t]');if(n)show(n.dataset.t);const g=e.target.closest('[data-g]');if(g){GR=+g.dataset.g;render()}const cx=e.target.closest('[data-cx],[data-mm]');if(cx&&CB){const v=S.ev.find(z=>z.id===CB);if(v){const isC=cx.dataset.cx!==undefined,k=isC?'ctx':'mood',val=isC?cx.dataset.cx:cx.dataset.mm;v[k]=v[k]===val?'':val;upd(v).then(render)}}const i=e.target.closest('[data-id]');if(i){const ev=S.ev.find(x=>x.id==i.dataset.id);if(ev)openM({...ev},'Edit time')}});
 
 $('#mc').onclick=()=>$('#dlg').close();
 $('#ms').onclick=async()=>{const t=new Date($('#mi').value).getTime();if(!t||t>Date.now()+6e4){toast('Pick a time that has already passed');return}
@@ -197,6 +219,25 @@ $('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)
 ['cut','base','pack','price'].forEach(k=>$('#s-'+k).onchange=async e=>{S.cfg[k]=Math.max(0,+e.target.value||0);await kset('cfg',S.cfg);render()});
 $('#s-cur').onchange=async e=>{S.cfg.cur=e.target.value||'₹';await kset('cfg',S.cfg);render()};
 
+async function logAdj(t){S.adj.push({t:Date.now(),txt:t});await kset('adj',S.adj)}
+function pop(t,b,acts){$('#pt').textContent=t;$('#pb').innerHTML=b;$('#pr').value='';$('#pe').textContent='';$('#pa').innerHTML='';acts.forEach(([l,c,f])=>{const e=document.createElement('button');e.className='btn '+c;e.textContent=l;e.onclick=async()=>{const r=$('#pr').value.trim();if(r.length<2){$('#pe').textContent='Add a short reason first';return}await f(r);$('#pdlg').close();render()};$('#pa').appendChild(e)});$('#pdlg').showModal()}
+$('#px').onclick=()=>$('#pdlg').close();$('#ecl').onclick=()=>$('#edlg').close();
+$('#esv').onclick=async()=>{const r=$('#erz').value.trim(),tk=todayK(),ch=[];if(r.length<2){$('#ee').textContent='Add a short reason first';return}
+ if(S.obs){const st=$('#eos').value,d=+$('#eod').value;if(!st||st>tk||d<3){$('#ee').textContent='Check the observation start and days';return}if(st!==S.obs.start||d!==S.obs.days){ch.push('observation '+st+', '+d+' days');S.obs.start=st;S.obs.days=d;if(S.obs.done){const bd=byDay(),ks=Object.keys(S.conf).filter(k=>S.conf[k]&&k>=st&&k<tk);S.obs.baseline=ks.length?ks.reduce((t,k)=>t+(bd[k]||0),0)/ks.length:null}await kset('obs',S.obs)}}
+ const a=att();if(a){const l=Math.max(0,+$('#epl').value||0),d=Math.max(0,+$('#epd').value||0),st=$('#eps').value;if(!st||st>tk){$('#ee').textContent='Check the phase start date';return}if(l!==a.allow||d!==a.days||st!==a.start){ch.push('phase limit '+l+', '+d+' days, from '+st);Object.assign(a,{allow:l,days:l?Math.max(3,d):0,start:st});await kset('att',S.att)}}
+ if(!ch.length){$('#ee').textContent='Nothing changed';return}await logAdj('Edited '+ch.join('; ')+'. Reason: '+r);$('#edlg').close();render();toast('Saved')};
+$('#ero').onclick=async()=>{const r=$('#erz').value.trim();if(r.length<2){$('#ee').textContent='Add a short reason first';return}if(!confirm('Reopen observation? Reduction pauses until you complete it again.'))return;S.obs.done=false;S.obs.baseline=null;await kset('obs',S.obs);await logAdj('Observation reopened. Reason: '+r);$('#edlg').close();render()};
+$('#edl').onclick=()=>{$('#edlg').close();A.wipe()};
+function bands(){const c=cigs();if(c.length<3)return'';const days=new Set(c.map(e=>dk(e.t,e.off))).size||1,hr=Array(24).fill(0);c.forEach(e=>hr[new Date(e.t+e.off*6e4).getUTCHours()]++);
+ const sc=hr.map((v,i)=>[i,v+hr[(i+1)%24]]).sort((x,y)=>y[1]-x[1]),pick=[];sc.forEach(x=>{if(x[1]&&pick.length<3&&pick.every(q=>Math.min((x[0]-q[0]+24)%24,(q[0]-x[0]+24)%24)>=2))pick.push(x)});
+ const f=h=>((h%12)||12)+(h%24<12?' am':' pm');return'<div class="sub" style="margin-top:10px">Usual times</div>'+pick.map(([h,n])=>`<div class="stat"><span>Around ${f(h)} to ${f(h+2)}</span><b>${(n/days).toFixed(1)} a day</b></div>`).join('')}
+function chart(){const bd=byDay(),tk=todayK(),n=GR,W=320,H=130,bw=W/n,ks=[];for(let i=n-1;i>=0;i--)ks.push(addD(tk,-i));
+ const mx=Math.max(4,...ks.map(k=>bd[k]||0),(S.obs&&S.obs.baseline)||0),y=v=>H-6-(v/mx)*(H-24);
+ const bars=ks.map((k,i)=>{const v=bd[k]||0,h=v?Math.max(2,(v/mx)*(H-24)):0;return`<rect x="${i*bw+bw*.15}" y="${H-6-h}" width="${bw*.7}" height="${h}" rx="3" style="fill:var(--hi);opacity:${S.conf[k]||k===tk?.9:.35}"/>`}).join('');
+ const lp=[];ks.forEach((k,i)=>{const a=S.att.find(z=>z.start<=k&&(!z.endK||k<=z.endK));if(a&&a.allow>0)lp.push(`${i*bw+bw/2},${y(a.allow)}`)});
+ const bl=S.obs&&S.obs.done&&S.obs.baseline!=null?`<line x1="0" x2="${W}" y1="${y(S.obs.baseline)}" y2="${y(S.obs.baseline)}" style="stroke:var(--mut)" stroke-dasharray="4 4"/>`:'';
+ const lb=[0,(n-1)>>1,n-1].map(i=>`<text x="${i*bw+bw/2}" y="${H+10}" text-anchor="${i===0?'start':i===n-1?'end':'middle'}" style="fill:var(--mut);font-size:10px">${new Date(ks[i]+'T12:00:00').toLocaleDateString([],{day:'numeric',month:'short'})}</text>`).join('');
+ return`<b>Cigarettes per day</b><div class="chips">${[14,30,90].map(g=>`<button data-g="${g}" class="${g===GR?'on':''}">${g} days</button>`).join('')}</div><svg viewBox="0 0 ${W} ${H+14}" width="100%" style="margin-top:10px"><line x1="0" x2="${W}" y1="${H-6}" y2="${H-6}" style="stroke:var(--line)"/>${bars}${bl}${lp.length>1?`<polyline points="${lp.join(' ')}" fill="none" style="stroke:var(--warn)" stroke-width="2"/>`:''}${lb}</svg><div class="sub">Faint bars are unconfirmed days. Dashed line: baseline. Amber line: daily limit.</div>`}
 const CX=['Work break','Social','After a meal','Tea or coffee','Stress','Boredom','Commute','Other'],MD=['Strong craving','Stressed','Bored','Calm','Low'];
 $('#mx').innerHTML='<option value="">Skip</option>'+CX.map(x=>`<option>${x}</option>`).join('');$('#mm').innerHTML='<option value="">Skip</option>'+MD.map(x=>`<option>${x}</option>`).join('');
 [['wk','wake'],['sl','sleep']].forEach(([i,k])=>$('#s-'+i).onchange=async e=>{S.cfg[k]=e.target.value;await kset('cfg',S.cfg);render()});
@@ -211,7 +252,7 @@ let oH='';
 function obsUI(tk){const o=S.obs;let h;
  if(!o)h='<div class="card"><b>Start observation</b><div class="sub">First, SmokeLess only watches your pattern. No limits, no targets. How many days should it observe?</div><div class="cf"><input id="od" type="number" min="3" max="60" value="7" style="max-width:90px"><button class="btn p" data-a="obsStart">Start observing</button></div></div>';
  else if(!o.done){const x=dd(o.start,tk)+1,over=x>o.days,end=new Date(Date.parse(o.start)+(o.days-1)*864e5).toISOString().slice(0,10);
-  h=`<div class="card"><b>Observation · day ${Math.min(x,o.days)} of ${o.days}</b><div class="bar"><i style="width:${Math.round(Math.min(x,o.days)/o.days*100)}%"></i></div><div class="sub">${over?'The period is over. Complete it to set your baseline.':'Ends '+lab(end)+'. No limit applies yet.'}</div><div class="row" style="margin:12px 0 0"><button class="btn${over?' p':''}" data-a="obsDone">${over?'Complete observation':'Complete early'}</button></div></div>`}
+  h=`<div class="card tap" data-a="pObs"><b>Observation</b> <span class="chip">tap to manage</span><div class="bar"><i style="width:${Math.round(Math.min(x,o.days)/o.days*100)}%"></i></div><div class="sub">Day ${Math.min(x,o.days)} of ${o.days}. ${over?'The period is over. Tap to complete it.':'Ends '+lab(end)+'. No limit applies yet.'}</div></div>`}
  else h=redUI(tk);
  if(h!==oH){oH=h;$('#obsc').innerHTML=h}}
 function pat(){const c=cigs().sort((a,b)=>a.t-b.t);if(c.length<3)return'<b>Your pattern</b><div class="sub">Log a few cigarettes and your pattern will appear here.</div>';
@@ -244,19 +285,18 @@ function adapt(a){if(a.allow<=0)return;a.sh=a.sh||{};let ch=0;const g=gapMin(a)*
 function devN(a){const g=gapMin(a)*nb()/a.allow,d={};cigs().forEach(e=>{const k=dk(e.t,e.off);if(k>=a.start)(d[k]=d[k]||[]).push(e)});let n=0;Object.keys(d).sort().slice(-7).forEach(k=>{const c=d[k].sort((x,y)=>x.t-y.t);for(let i=1;i<c.length;i++)if(c[i].t<c[i-1].t+(g-30)*6e4)n++});return n}
 const FB=()=>'<div class="card"><b>Smoking earlier than the windows?</b><div class="sub">Optional: what is behind it? This helps tune your windows.</div><div class="stk">'+['Strong craving','Social','Boredom','Stress','Timing unrealistic'].map(r=>`<button class="btn" data-a="fb" data-r="${r}">${r}</button>`).join('')+'<button class="btn" data-a="fb">Skip</button></div></div>';
 function extra(){const bd=byDay(),w={a:[],e:[]};Object.keys(S.conf).filter(k=>S.conf[k]).forEach(k=>w[[0,6].includes(new Date(k+'T12:00:00').getDay())?'e':'a'].push(bd[k]||0));const av=x=>(x.reduce((p,q)=>p+q,0)/x.length).toFixed(1),cc={};cigs().forEach(e=>{if(e.ctx)cc[e.ctx]=(cc[e.ctx]||0)+1});const ct=Object.entries(cc).sort((x,y)=>y[1]-x[1]).slice(0,3);
- return(w.a.length&&w.e.length?`<div class="stat"><span>Weekday average</span><b>${av(w.a)}</b></div><div class="stat"><span>Weekend average</span><b>${av(w.e)}</b></div>`:'')+(ct.length?'<div class="sub" style="margin-top:8px">Most common contexts</div>'+ct.map(([k,v])=>`<div class="stat"><span>${k}</span><b>${v}</b></div>`).join(''):'')}
+ return(w.a.length&&w.e.length?`<div class="stat"><span>Weekday average</span><b>${av(w.a)}</b></div><div class="stat"><span>Weekend average</span><b>${av(w.e)}</b></div>`:'')+bands()}
 function weekly(){const bd=byDay(),tk=todayK(),sm=(f,t)=>{let n=0;for(let i=f;i<t;i++)n+=bd[addD(tk,-i)]||0;return n},a=sm(0,7),b=sm(7,14);if(!a&&!b)return'';
  const cr=S.ev.filter(e=>e.type==='crave'&&dd(dk(e.t,e.off),tk)<7).length,cp=cpc(),cc={};S.ev.forEach(e=>{if(e.type==='cig'&&e.ctx&&dd(dk(e.t,e.off),tk)<7)cc[e.ctx]=(cc[e.ctx]||0)+1});const top=Object.entries(cc).sort((x,y)=>y[1]-x[1])[0];
  return`<b>Last 7 days</b><div class="stat"><span>Cigarettes</span><b>${a}</b></div><div class="stat"><span>The 7 days before</span><b>${b}</b></div><div class="stat"><span>Cravings resisted</span><b>${cr}</b></div>`+(cp?`<div class="stat"><span>Estimated spend</span><b>${money(a*cp)}</b></div>`:'')+(top?`<div class="stat"><span>Most common context</span><b>${top[0]}</b></div>`:'')}
-async function endA(dec){const rs=($('#rs')||{}).value||'';const a=att(),tk=todayK(),y=addD(tk,-1),l=a.days>0?addD(a.start,a.days-1):y;a.end=Date.now();a.endK=l<y?l:y;const c=score(a,tk);Object.assign(a,{dec,pct:c.pct,ok:c.ok,el:c.el,adh:c.adh,reason:rs});S.adj.push({t:Date.now(),txt:'Limit '+a.allow+': '+dec+(rs?'. Reason: '+rs:'')});await kset('adj',S.adj)}
+async function endA(dec,rs=''){const a=att(),tk=todayK(),y=addD(tk,-1),l=a.days>0?addD(a.start,a.days-1):y;a.end=Date.now();a.endK=l<y?l:y;const c=score(a,tk);Object.assign(a,{dec,pct:c.pct,ok:c.ok,el:c.el,adh:c.adh,reason:rs});S.adj.push({t:Date.now(),txt:'Limit '+a.allow+': '+dec+(rs?'. Reason: '+rs:'')});await kset('adj',S.adj)}
 async function startA(allow,days,link){S.att.push({id:Date.now(),allow,days,start:todayK(),end:null,n:S.att.filter(x=>x.allow===allow).length+1,link});await kset('att',S.att);render()}
 function redUI(tk){const a=att(),B=nb();
  if(!a){const p0=Math.max(1,Math.round(B)-Math.max(1,Math.round(B*.1)));return`<div class="card"><b>Your reduction plan</b><div class="sub">Baseline: ${B.toFixed(1)} a day. Each phase has a daily limit, which is a ceiling and never a target. Every step needs your approval.</div><label>First daily limit</label><input id="p0" type="number" min="0" value="${p0}"><label>Days per phase (minimum 3)</label><input id="pd" type="number" min="3" value="7"><div class="row" style="margin:14px 0 0"><button class="btn p" data-a="planGo">Approve and start</button></div></div>`}
- const x=dd(a.start,tk)+1,c=score(a,tk),bd=byDay(),due=a.days>0&&x>a.days,sc=c.pct==null?'No confirmed days yet.':`Consumption ${c.pct}% (${c.ok} of ${c.el} days)`+(c.adh!=null?` · Schedule ${c.adh}%`:'');
- const rel=[1,2,3].every(i=>{const k=addD(tk,-i);return S.conf[k]&&k>=a.start&&(bd[k]||0)>a.allow})&&a.rd!==tk,pv=S.att.slice(0,-1).reverse().find(v=>v.allow>a.allow);
- if(due){const rec=c.pct!=null&&c.pct>=80?Math.max(0,a.allow-Math.max(1,Math.round(a.allow*.1))):a.allow;
-  return`<div class="card"><b>Phase complete</b><div class="sub">${sc}</div><div class="sub">${c.pct==null?'Confirm your past days to get a recommendation.':c.pct>=80?'80% or better, so a lower limit is suggested.':'Under 80%, so repeating the phase is suggested.'} Your call.</div><label>Next daily limit</label><input id="na" type="number" min="0" value="${rec}"><label>Days</label><input id="nd" type="number" min="3" value="${a.days}"><label>Reason (optional)</label><input id="rs" maxlength="80"><div class="stk"><button class="btn p" data-a="phaseGo">Start with these numbers</button><button class="btn" data-a="phaseRep">Repeat this phase</button>${pv?'<button class="btn" data-a="phaseBack">Go back to limit '+pv.allow+'</button>':''}</div></div>`}
- return((a.allow>0&&devN(a)>=3&&Date.now()-(S.cfg.fbT||0)>3*864e5)?FB():'')+(rel?`<div class="card"><b>A few hard days</b><div class="sub">Three confirmed days over the limit. Your progress is safe. What now?</div><div class="stk"><button class="btn" data-a="relKeep">Keep going</button><button class="btn" data-a="phaseRep">Repeat this phase</button>${pv?'<button class="btn" data-a="phaseBack">Go back to limit '+pv.allow+'</button>':''}</div></div>`:'')+`<div class="card"><b>${a.allow?'Limit '+a.allow+' a day':'Smoke-free tracking'}</b><div class="sub">Attempt ${a.n} · ${a.days?'day '+x+' of '+a.days:'ongoing'}</div><div class="sub">${sc}</div></div>`}
+ const x=dd(a.start,tk)+1,c=score(a,tk),bd=byDay(),due=a.days>0&&x>a.days,ph=new Set(S.att.map(v=>v.allow)).size,sc=c.pct==null?'No confirmed days yet.':`Consumption ${c.pct}% (${c.ok} of ${c.el} days)`+(c.adh!=null?` · Schedule ${c.adh}%`:'');
+ let st=0;for(let i=1;i<60;i++){const k=addD(tk,-i);if(S.conf[k]&&k>=a.start&&(bd[k]||0)<=a.allow)st++;else break}
+ const rel=[1,2,3].every(i=>{const k=addD(tk,-i);return S.conf[k]&&k>=a.start&&(bd[k]||0)>a.allow})&&a.rd!==tk;
+ return((a.allow>0&&devN(a)>=3&&Date.now()-(S.cfg.fbT||0)>3*864e5)?FB():'')+(rel?`<div class="card"><b>A few hard days</b><div class="sub">Three confirmed days over the limit. Your progress is safe. What now?</div><div class="stk"><button class="btn" data-a="relKeep">Keep going</button><button class="btn p" data-a="pPhase">Review options</button></div></div>`:'')+`<div class="card tap" data-a="pPhase"><b>Phase ${ph} · ${a.allow?'limit '+a.allow+' a day':'smoke-free'}</b> <span class="chip">${due?'review now':'tap to manage'}</span><div class="sub">Attempt ${a.n} · ${a.days?'day '+Math.min(x,a.days)+' of '+a.days:'ongoing'}${st?' · '+st+' day streak':''}</div><div class="sub">${due?'Phase complete. Tap to choose the next step. ':''}${sc}</div></div>`}
 function render(){
  const bd=byDay(),tk=todayK(),n=bd[tk]||0,cp=cpc();
  $('#date').textContent=lab(tk);obsUI(tk);
@@ -269,6 +309,8 @@ function render(){
  $('#tlist').innerHTML=tc.length?tc.map(e=>`<div class="it" data-id="${e.id}"><span>${hm(e.t)}</span>${e.back?'<span class="chip w">backdated</span>':'<span class="sub">tap to edit</span>'}</div>`).join(''):'<div class="empty">Nothing logged yet today.</div>';
  const p=pending();
  $('#pend').innerHTML=p.length?`<div class="card"><b>Confirm past days</b><div class="sub">Only confirmed days count toward your progress.</div>`+p.slice(0,3).map(k=>`<div class="cf"><span>${lab(k)} · <b>${bd[k]||0}</b> logged</span><button class="btn p" data-a="confirm" data-k="${k}">${bd[k]?'Confirm':'Yes, zero'}</button></div>`).join('')+(p.length>3?`<div class="sub">${p.length-3} more earlier</div>`:'')+'</div>':'';
+ {const cb=$('#cb');cb.hidden=!CB;if(CB){const v=S.ev.find(z=>z.id===CB)||{};$('#cbx').innerHTML=CX.map(c=>`<button data-cx="${c}" class="${v.ctx===c?'on':''}">${c}</button>`).join('');$('#cbm').innerHTML=MD.map(c=>`<button data-mm="${c}" class="${v.mood===c?'on':''}">${c}</button>`).join('')}
+ $('#undo').hidden=!S.ev.length;const lc=cigs().reduce((m,e)=>e.t>m?e.t:m,0),dl=Date.now()-lc;$('#since').textContent=lc?'Last cigarette '+(dl>=36e5?Math.floor(dl/36e5)+'h ':'')+Math.floor(dl%36e5/6e4)+'m ago':'';$('#gr').innerHTML=chart()}
  const od=S.ev.length&&Date.now()-S.cfg.lastExp>7*864e5;$('#lastexp').textContent=S.cfg.lastExp?'Last export: '+new Date(S.cfg.lastExp).toLocaleDateString([],{day:'numeric',month:'short'})+(od?'. Time to export again.':''):'Never exported. Export weekly; clearing browser data erases everything.';$$('nav button')[2].classList.toggle('dot',!!od);
  // history
  const base=(S.obs&&S.obs.baseline!=null)?S.obs.baseline:S.cfg.base,cd=Object.keys(S.conf).filter(k=>S.conf[k]&&k<tk),tot=cd.reduce((s,k)=>s+(bd[k]||0),0),avg=cd.length?tot/cd.length:0,sav=cd.reduce((s,k)=>s+(base-(bd[k]||0)),0)*cp;
