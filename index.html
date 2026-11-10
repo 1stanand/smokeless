@@ -53,6 +53,7 @@ nav button.dot::after{content:'';display:inline-block;width:7px;height:7px;borde
 .hero{transition:background .3s}.st{margin-top:10px;font-weight:600}.hero.g{background:#102a1b;border-color:#3a7d51}.hero.a{background:#2a2111;border-color:#8a6a24}.hero.r{background:#2c1614;border-color:#9a4a42}.stk{display:flex;flex-direction:column;gap:8px;margin-top:12px}.stk .btn{flex:none}
 select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--btn);color:var(--ink)}
 .tap{cursor:pointer}.tap:active{opacity:.85}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.chips button{border:1px solid var(--line);background:var(--btn);color:var(--ink);border-radius:99px;padding:8px 13px;font:14px var(--sans)}.chips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.timer{font:600 52px var(--serif);font-variant-numeric:tabular-nums;margin-top:6px}
 [hidden]{display:none!important}
 .empty{color:var(--mut);text-align:center;padding:14px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -69,6 +70,8 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
     <div class="num" id="cnt">0</div>
     <div class="sub" id="cntsub">cigarettes today</div>
     <div class="st" id="st"></div>
+    <div class="timer" id="cd"></div>
+    <div class="sub" id="why" style="font-size:13px"></div>
     <div class="sub" id="since"></div>
     <div class="strip" id="strip"></div>
     <div class="scale"><span>4 am</span><span>10 am</span><span>4 pm</span><span>10 pm</span><span>4 am</span></div>
@@ -122,7 +125,11 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
 
 <div id="toast"><span id="tmsg"></span><button id="tctx" hidden>Context</button><button id="tund" hidden>Undo</button></div>
 
-<dialog id="pdlg"><b id="pt"></b><div id="pb"></div><label>Reason (required)</label><input id="pr" maxlength="80"><div class="sub" id="pe" style="color:var(--warn)"></div><div class="stk" id="pa"></div><div class="stk"><button class="btn" id="px">Close</button></div></dialog>
+<dialog id="ldlg"><div style="text-align:center"><div class="sub" id="lt"></div><div class="timer" id="lcd" style="font-size:64px"></div><div class="sub" id="ln" style="font-weight:600"></div></div>
+ <div class="sub" style="margin-top:16px">What was happening? (optional)</div><div class="chips" id="lx"></div>
+ <div class="sub" style="margin-top:12px">Mood or urge (optional)</div><div class="chips" id="lm"></div>
+ <div class="row" style="margin:16px 0 0"><button class="btn" id="lun">Undo</button><button class="btn p" id="lok">Done</button></div></dialog>
+<dialog id="pdlg"><b id="pt"></b><div id="pb"></div><div id="prw"><label>Reason (required)</label><input id="pr" maxlength="80"></div><div class="sub" id="pe" style="color:var(--warn)"></div><div class="stk" id="pa"></div><div class="stk"><button class="btn" id="px">Close</button></div></dialog>
 <dialog id="edlg"><b>Edit records</b>
  <div id="eo"><label>Observation start date</label><input id="eos" type="date"><label>Observation days</label><input id="eod" type="number" min="3" max="90"></div>
  <div id="ep"><label>Current phase: daily limit</label><input id="epl" type="number" min="0"><label>Current phase: days (0 = ongoing)</label><input id="epd" type="number" min="0"><label>Current phase: start date</label><input id="eps" type="date"></div>
@@ -143,13 +150,13 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
 
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-let db,S={ev:[],conf:{},cfg:{cut:4,base:10,pack:20,price:0,cur:'₹',lastExp:0}},M=null,lastId=null,tT,CB=null,GR=14;
+let db,S={ev:[],conf:{},cfg:{cut:4,base:10,pack:20,price:0,cur:'₹',lastExp:0}},M=null,lastId=null,tT,CB=null,GR=14,NW=null,LW=null,LD=false;
 
 /* ---- storage (IndexedDB) ---- */
 const tx=(s,m,f)=>new Promise((res,rej)=>{const t=db.transaction(s,m),o=f(t.objectStore(s));t.oncomplete=()=>res(o&&o.result);t.onerror=()=>rej(t.error)});
 const openDB=()=>new Promise((res,rej)=>{const r=indexedDB.open('smokeless',1);r.onupgradeneeded=()=>{r.result.createObjectStore('ev',{keyPath:'id',autoIncrement:true});r.result.createObjectStore('kv')};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 const kset=(k,v)=>tx('kv','readwrite',s=>s.put(v,k));
-const load=async()=>{S.ev=await tx('ev','readonly',s=>s.getAll());S.conf=(await tx('kv','readonly',s=>s.get('conf')))||{};Object.assign(S.cfg,await tx('kv','readonly',s=>s.get('cfg')));S.obs=(await tx('kv','readonly',s=>s.get('obs')))||null;S.att=(await tx('kv','readonly',s=>s.get('att')))||[];S.adj=(await tx('kv','readonly',s=>s.get('adj')))||[]};
+const load=async()=>{S.ev=await tx('ev','readonly',s=>s.getAll());S.conf=(await tx('kv','readonly',s=>s.get('conf')))||{};Object.assign(S.cfg,await tx('kv','readonly',s=>s.get('cfg')));S.obs=(await tx('kv','readonly',s=>s.get('obs')))||null;S.att=(await tx('kv','readonly',s=>s.get('att')))||[];S.adj=(await tx('kv','readonly',s=>s.get('adj')))||[];S.skip=(await tx('kv','readonly',s=>s.get('skip')))||{}};
 
 /* ---- time helpers ---- */
 const offNow=t=>-new Date(t||Date.now()).getTimezoneOffset();
@@ -172,11 +179,11 @@ function dl(name,type,txt){const a=document.createElement('a');a.href=URL.create
 function openM(ev,title){M=ev;$('#mx').value=ev.ctx||'';$('#mm').value=ev.mood||'';$('#mt').textContent=title;$('#mi').value=loc(ev.t);$('#md').hidden=!ev.id;$('#dlg').showModal()}
 
 const A={
- async log(){const t=Date.now(),id=await add({t,off:offNow(t),type:'cig',back:false});CB=id;render();toast('Logged at '+hm(t),async()=>{await rem(id);render();toast('Removed')},()=>{$('#toast').classList.remove('on');openM({...S.ev.find(x=>x.id===id)},'Add context')})},
+ async log(){const t=Date.now(),s0=nowSched(),id=await add({t,off:offNow(t),type:'cig',back:false});CB=id;render();const s1=nowSched(),a1=att();if(a1&&S.obs&&S.obs.done){const tk1=todayK(),r1=stat(a1,byDay()[tk1]||0,tk1),er=s0&&t<s0-6e5;LD=true;LW=s1||null;$('#lt').textContent='Logged at '+hm(t)+(er?' · '+Math.round((s0-t)/6e4)+' min early':'');$('#lcd').textContent=s1?hms(s1-Date.now()):'';$('#ln').textContent=s1?'Next cigarette allowed at '+hm(s1)+(er?'. Pushed back to make up for the early one.':''):r1.t;$('#ldlg').showModal();render()}toast('Logged at '+hm(t)+(s0&&t<s0-6e5?'. '+Math.round((s0-t)/6e4)+' min early':'')+(s1?'. Next at '+hm(s1):''),async()=>{await rem(id);render();toast('Removed')},()=>{$('#toast').classList.remove('on');openM({...S.ev.find(x=>x.id===id)},'Add context')})},
  back(){openM({t:Date.now(),off:offNow(),type:'cig',back:true},'Add a missed cigarette')},
  async crave(){const t=Date.now(),id=await add({t,off:offNow(t),type:'crave'});render();toast('Craving resisted. Well done.',async()=>{await rem(id);render()})},
  async confirm(){const k=this.dataset.k;S.conf[k]=true;await kset('conf',S.conf);render()},
- exp(){const o={v:1,exported:new Date().toISOString(),cfg:S.cfg,conf:S.conf,obs:S.obs,att:S.att,adj:S.adj,ev:S.ev};S.cfg.lastExp=Date.now();kset('cfg',S.cfg);dl('smokeless-'+todayK()+'.json','application/json',JSON.stringify(o,null,1));render()},
+ exp(){const o={v:1,exported:new Date().toISOString(),cfg:S.cfg,conf:S.conf,obs:S.obs,att:S.att,adj:S.adj,skip:S.skip,ev:S.ev};S.cfg.lastExp=Date.now();kset('cfg',S.cfg);dl('smokeless-'+todayK()+'.json','application/json',JSON.stringify(o,null,1));render()},
  csv(){const r=['id,time,type,backdated'].concat(S.ev.map(e=>[e.id,new Date(e.t).toISOString(),e.type,!!e.back].join(',')));dl('smokeless-'+todayK()+'.csv','text/csv',r.join('\n'))},
  imp(){$('#file').click()},
  async obsStart(){const n=Math.min(60,Math.max(3,+$('#od').value||7));S.obs={start:todayK(),days:n,done:false};await kset('obs',S.obs);render();toast('Observation started for '+n+' days')},
@@ -200,7 +207,8 @@ const A={
  async undo(){const e=S.ev.reduce((m,x)=>!m||(x.entered||x.t)>(m.entered||m.t)?x:m,null);if(!e)return;await rem(e.id);if(CB===e.id)CB=null;render();toast('Removed '+(e.type==='cig'?'cigarette':'craving')+' from '+hm(e.t))},
  cbDone(){CB=null;render()},
  edit(){const o=S.obs,a=att();$('#ee').textContent='';$('#erz').value='';$('#eo').hidden=!o;$('#ep').hidden=!a;$('#ero').hidden=!(o&&o.done);if(o){$('#eos').value=o.start;$('#eod').value=o.days}if(a){$('#epl').value=a.allow;$('#epd').value=a.days;$('#eps').value=a.start}$('#edlg').showModal()},
- async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});await kset('obs',null);S.obs=null;await kset('att',[]);S.att=[];await kset('adj',[]);S.adj=[];S.ev=[];S.conf={};render();toast('All data deleted')}
+ notRight(){const k=this.dataset.k;pop('Not right? '+lab(k),`<div class="sub">You logged ${byDay()[k]||0} that day. What do you want to do?</div>`,[['Add a missed cigarette to that day','p',async()=>{openM({t:ds(k)+(12-S.cfg.cut)*36e5,off:offNow(),type:'cig',back:true},'Add a missed cigarette')}],['Skip this day (I did not track it)','',async()=>{S.skip[k]=true;await kset('skip',S.skip)}]],true)},
+ async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});await kset('obs',null);S.obs=null;await kset('att',[]);S.att=[];await kset('adj',[]);S.adj=[];await kset('skip',{});S.skip={};S.ev=[];S.conf={};render();toast('All data deleted')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a].call(b);const n=e.target.closest('[data-t]');if(n)show(n.dataset.t);const g=e.target.closest('[data-g]');if(g){GR=+g.dataset.g;render()}const cx=e.target.closest('[data-cx],[data-mm]');if(cx&&CB){const v=S.ev.find(z=>z.id===CB);if(v){const isC=cx.dataset.cx!==undefined,k=isC?'ctx':'mood',val=isC?cx.dataset.cx:cx.dataset.mm;v[k]=v[k]===val?'':val;upd(v).then(render)}}const i=e.target.closest('[data-id]');if(i){const ev=S.ev.find(x=>x.id==i.dataset.id);if(ev)openM({...ev},'Edit time')}});
 
@@ -213,15 +221,15 @@ $('#md').onclick=async()=>{await rem(M.id);$('#dlg').close();render();toast('Del
 $('#file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
  try{const o=JSON.parse(await f.text());if(!Array.isArray(o.ev)||o.ev.some(x=>typeof x.t!=='number'||!x.type))throw 0;
   if(!confirm('Replace all current data with '+o.ev.length+' records from this backup?'))return;
-  await tx('ev','readwrite',s=>{s.clear();o.ev.forEach(x=>s.put(x))});await kset('conf',o.conf||{});await kset('obs',o.obs||null);await kset('att',o.att||[]);await kset('adj',o.adj||[]);Object.assign(S.cfg,o.cfg||{});await kset('cfg',S.cfg);await load();render();toast('Backup restored')}
+  await tx('ev','readwrite',s=>{s.clear();o.ev.forEach(x=>s.put(x))});await kset('conf',o.conf||{});await kset('obs',o.obs||null);await kset('att',o.att||[]);await kset('adj',o.adj||[]);await kset('skip',o.skip||{});Object.assign(S.cfg,o.cfg||{});await kset('cfg',S.cfg);await load();render();toast('Backup restored')}
  catch{toast('That file is not a valid SmokeLess backup')}};
 
 ['cut','base','pack','price'].forEach(k=>$('#s-'+k).onchange=async e=>{S.cfg[k]=Math.max(0,+e.target.value||0);await kset('cfg',S.cfg);render()});
 $('#s-cur').onchange=async e=>{S.cfg.cur=e.target.value||'₹';await kset('cfg',S.cfg);render()};
 
 async function logAdj(t){S.adj.push({t:Date.now(),txt:t});await kset('adj',S.adj)}
-function pop(t,b,acts){$('#pt').textContent=t;$('#pb').innerHTML=b;$('#pr').value='';$('#pe').textContent='';$('#pa').innerHTML='';acts.forEach(([l,c,f])=>{const e=document.createElement('button');e.className='btn '+c;e.textContent=l;e.onclick=async()=>{const r=$('#pr').value.trim();if(r.length<2){$('#pe').textContent='Add a short reason first';return}await f(r);$('#pdlg').close();render()};$('#pa').appendChild(e)});$('#pdlg').showModal()}
-$('#px').onclick=()=>$('#pdlg').close();$('#ecl').onclick=()=>$('#edlg').close();
+function pop(t,b,acts,nr){$('#pt').textContent=t;$('#prw').hidden=!!nr;$('#pb').innerHTML=b;$('#pr').value='';$('#pe').textContent='';$('#pa').innerHTML='';acts.forEach(([l,c,f])=>{const e=document.createElement('button');e.className='btn '+c;e.textContent=l;e.onclick=async()=>{const r=$('#pr').value.trim();if(!nr&&r.length<2){$('#pe').textContent='Add a short reason first';return}await f(r);$('#pdlg').close();render()};$('#pa').appendChild(e)});$('#pdlg').showModal()}
+$('#px').onclick=()=>$('#pdlg').close();$('#lok').onclick=()=>$('#ldlg').close();$('#ldlg').onclose=()=>{LD=false;LW=null;CB=null;render()};$('#lun').onclick=async()=>{$('#ldlg').close();await A.undo()};$('#ecl').onclick=()=>$('#edlg').close();
 $('#esv').onclick=async()=>{const r=$('#erz').value.trim(),tk=todayK(),ch=[];if(r.length<2){$('#ee').textContent='Add a short reason first';return}
  if(S.obs){const st=$('#eos').value,d=+$('#eod').value;if(!st||st>tk||d<3){$('#ee').textContent='Check the observation start and days';return}if(st!==S.obs.start||d!==S.obs.days){ch.push('observation '+st+', '+d+' days');S.obs.start=st;S.obs.days=d;if(S.obs.done){const bd=byDay(),ks=Object.keys(S.conf).filter(k=>S.conf[k]&&k>=st&&k<tk);S.obs.baseline=ks.length?ks.reduce((t,k)=>t+(bd[k]||0),0)/ks.length:null}await kset('obs',S.obs)}}
  const a=att();if(a){const l=Math.max(0,+$('#epl').value||0),d=Math.max(0,+$('#epd').value||0),st=$('#eps').value;if(!st||st>tk){$('#ee').textContent='Check the phase start date';return}if(l!==a.allow||d!==a.days||st!==a.start){ch.push('phase limit '+l+', '+d+' days, from '+st);Object.assign(a,{allow:l,days:l?Math.max(3,d):0,start:st});await kset('att',S.att)}}
@@ -245,7 +253,7 @@ function show(t){['today','hist','set'].forEach(x=>$('#v-'+x).hidden=x!==t);$$('
 
 /* ---- render ---- */
 function pending(){const c=cigs();if(!c.length)return[];const f=c.reduce((a,b)=>b.t<a.t?b:a),fk=dk(f.t,f.off),d=new Date(todayK()+'T12:00:00Z'),out=[];
- for(let i=0;i<60&&out.length<7;i++){d.setUTCDate(d.getUTCDate()-1);const k=d.toISOString().slice(0,10);if(k<fk)break;if(!S.conf[k])out.push(k)}return out}
+ for(let i=0;i<60&&out.length<7;i++){d.setUTCDate(d.getUTCDate()-1);const k=d.toISOString().slice(0,10);if(k<fk)break;if(!S.conf[k]&&!S.skip[k])out.push(k)}return out}
 
 const dd=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
 let oH='';
@@ -264,7 +272,7 @@ function pat(){const c=cigs().sort((a,b)=>a.t-b.t);if(c.length<3)return'<b>Your 
 const nb=()=>S.obs&&S.obs.baseline!=null?S.obs.baseline:S.cfg.base;
 const att=()=>{const a=S.att[S.att.length-1];return a&&!a.end?a:null};
 const addD=(k,n)=>new Date(Date.parse(k)+n*864e5).toISOString().slice(0,10);
-const pre=a=>cigs().filter(e=>dk(e.t,e.off)<a.start).sort((x,y)=>x.t-y.t);
+const pre=a=>{const f=S.att.length?S.att[0].start:todayK(),s0=S.obs?S.obs.start:'';return cigs().filter(e=>{const k=dk(e.t,e.off);return k>=s0&&k<f}).sort((x,y)=>x.t-y.t)};
 function gapMin(a){const c=pre(a),g=[];for(let i=1;i<c.length;i++)if(dk(c[i].t,c[i].off)===dk(c[i-1].t,c[i-1].off))g.push((c[i].t-c[i-1].t)/6e4);g.sort((x,y)=>x-y);return g.length?g[g.length>>1]:90}
 function firstMed(a){const f={};pre(a).forEach(e=>{const k=dk(e.t,e.off);if(!f[k])f[k]=e});const m=Object.values(f).map(e=>{const d=new Date(e.t+e.off*6e4);return(d.getUTCHours()*60+d.getUTCMinutes()-S.cfg.cut*60+1440)%1440}).sort((x,y)=>x-y);return m.length?m[m.length>>1]:300}
 function shiftFor(a,i,gap){const days={};cigs().forEach(e=>{const k=dk(e.t,e.off);if(k>=a.start)(days[k]=days[k]||[]).push(e)});let early=0;Object.keys(days).sort().slice(-7).forEach(k=>{const c=days[k].sort((x,y)=>x.t-y.t);if(c[i]&&c[i-1]&&c[i].t<c[i-1].t+(gap-30)*6e4)early++});return -Math.min(60,15*Math.floor(early/3))}
@@ -272,17 +280,32 @@ const ds=tk=>Date.parse(tk+'T00:00:00Z')+S.cfg.cut*36e5-offNow()*6e4,tmin=h=>{co
 function nextWin(a,tk){if(a.allow<=0)return null;const td=cigs().filter(e=>dk(e.t,e.off)===tk).sort((x,y)=>x.t-y.t),i=td.length;let t;
  if(!i)t=Math.max(ds(tk)+firstMed(a)*6e4,S.cfg.wake?ds(tk)+tmin(S.cfg.wake)*6e4:0);else{const g=gapMin(a)*nb()/a.allow;t=td[i-1].t+(g+shiftFor(a,i,g))*6e4}
  return{s:t-18e5,e:t+18e5}}
+let DM={};
+function dens(a){const key=a.id+'|'+S.att.length+'|'+S.ev.length+'|'+S.cfg.cut;if(DM.k===key)return DM.v;const c=pre(a),days=new Set(c.map(e=>dk(e.t,e.off))).size||1,h=Array(24).fill(0);c.forEach(e=>{h[(new Date(e.t+e.off*6e4).getUTCHours()-S.cfg.cut+24)%24]++});const v=h.map((x,i)=>(h[(i+23)%24]*.25+x*.5+h[(i+1)%24]*.25)/days+.02);DM={k:key,v};return v}
+function endMin(a){const l={};pre(a).forEach(e=>{const k=dk(e.t,e.off);if(!l[k]||e.t>l[k].t)l[k]=e});const m=Object.values(l).map(e=>{const d=new Date(e.t+e.off*6e4);return(d.getUTCHours()*60+d.getUTCMinutes()-S.cfg.cut*60+1440)%1440}).sort((x,y)=>x-y);let e=(m.length?m[Math.min(m.length-1,Math.floor(m.length*.75))]:1200)+30;if(S.cfg.sleep)e=Math.min(e,tmin(S.cfg.sleep));return Math.min(1439,Math.max(e,60))}
+function mass(d,a,b){let t=0;for(let m=Math.max(0,Math.floor(a));m<b;m++)t+=d[Math.min(23,Math.floor(m/60))]/60;return t}
+function advance(d,from,target){let t=0;for(let m=Math.max(0,from);m<1440;m++){const v=d[Math.min(23,Math.floor(m/60))]/60;if(t+v>=target)return m+(target-t)/v;t+=v}return null}
+function spread(a,k,cs){const L=a.allow,n=cs.length,R=L-n;if(L<=0||R<=0)return null;const d=dens(a),base=ds(k);
+ if(!n){let m=firstMed(a);if(S.cfg.wake)m=Math.max(m,tmin(S.cfg.wake));return base+m*6e4}
+ const last=cs[n-1],lm=(last.t-base)/6e4,E=endMin(a),M=mass(d,lm,E);if(M<=.001)return null;
+ const m=advance(d,Math.floor(lm),M/(R+.5));return m==null?null:Math.max(base+m*6e4,last.t+6e5)}
+function plan(a,k){const o=[],cs=[];for(let i=0;i<a.allow;i++){const q=spread(a,k,cs);if(q==null)break;o.push(q);cs.push({t:q})}return o}
+function sched(a,k,cs){const q=spread(a,k,cs);if(q==null)return null;const P=plan(a,k)[cs.length];return P?Math.max(q,P):q}
+function nowSched(){const a=att();if(!a||!S.obs||!S.obs.done)return null;const tk=todayK();return sched(a,tk,cigs().filter(e=>dk(e.t,e.off)===tk).sort((x,y)=>x.t-y.t))}
+const hms=ms=>{const t=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 function stat(a,n,tk){const now=Date.now();
- if(n>a.allow)return{c:'r',t:a.allow?(n-a.allow)+' over today\'s limit. Logging stays open.':'A slip. Tomorrow starts fresh.'};
+ if(n>a.allow)return{c:'r',t:a.allow?(n-a.allow)+" over today's limit. Logging stays open.":'A slip. Tomorrow starts fresh.'};
  if(!a.allow)return{c:'g',t:'Smoke-free so far today'};
- if(n===a.allow)return{c:'a',t:'At today\'s limit. No more windows today.'};
- const w=nextWin(a,tk);if(S.cfg.sleep&&w.e>ds(tk)+tmin(S.cfg.sleep)*6e4)return{c:'a',t:'No more windows today'};if(now<w.s){const m=Math.round((w.s-now)/6e4);return{c:'a',t:'Next window '+hm(w.s)+' to '+hm(w.e)+' · in '+(m>=60?Math.floor(m/60)+'h ':'')+m%60+'m'}}
- return{c:'g',t:now<=w.e?'Window open until '+hm(w.e):'Window open since '+hm(w.s)}}
-function score(a,tk){const bd=byDay(),ks=Object.keys(S.conf).filter(k=>S.conf[k]&&k>=a.start&&k<tk&&(!a.endK||k<=a.endK)),ok=ks.filter(k=>(bd[k]||0)<=a.allow).length,gap=a.allow>0?gapMin(a)*nb()/a.allow:0;let t=0,w=0;
- if(gap){const st=new Set(ks),by={};cigs().forEach(e=>{const k=dk(e.t,e.off);if(st.has(k))(by[k]=by[k]||[]).push(e)});Object.values(by).forEach(c=>{c.sort((x,y)=>x.t-y.t);for(let i=1;i<c.length;i++){t++;if(Math.abs(c[i].t-c[i-1].t-gap*6e4)<=18e5)w++}})}
+ if(n===a.allow)return{c:'a',t:"At today's limit. No more windows today."};
+ const td=cigs().filter(e=>dk(e.t,e.off)===tk).sort((x,y)=>x.t-y.t),s=sched(a,tk,td);
+ if(s==null)return{c:'g',t:"Past your usual hours. Still within today's limit."};
+ if(now<s)return{c:'a',t:'Next cigarette at '+hm(s),at:s};
+ return{c:'g',t:'Window open since '+hm(s)}}
+function score(a,tk){const bd=byDay(),ks=Object.keys(S.conf).filter(k=>S.conf[k]&&k>=a.start&&k<tk&&(!a.endK||k<=a.endK)),ok=ks.filter(k=>(bd[k]||0)<=a.allow).length;let t=0,w=0;
+ if(a.allow>0){const st=new Set(ks),by={};cigs().forEach(e=>{const k=dk(e.t,e.off);if(st.has(k))(by[k]=by[k]||[]).push(e)});Object.entries(by).forEach(([k,c])=>{c.sort((x,y)=>x.t-y.t);c.forEach((e,i)=>{const q=sched(a,k,c.slice(0,i));if(q==null)return;t++;if(e.t>=q-6e5)w++})})}
  return{el:ks.length,ok,pct:ks.length?Math.round(ok/ks.length*100):null,adh:t?Math.round(w/t*100):null}}
 function adapt(a){if(a.allow<=0)return;a.sh=a.sh||{};let ch=0;const g=gapMin(a)*nb()/a.allow;for(let i=1;i<=Math.min(a.allow,12);i++){const v=shiftFor(a,i,g),o=a.sh[i]||0;if(v!==o){a.sh[i]=v;ch=1;S.adj.push({t:Date.now(),txt:v?'Window '+(i+1)+' now '+Math.abs(v)+' min earlier. You smoked early in that slot on 3+ of the last 7 days.':'Window '+(i+1)+' back to normal. Fewer early cigarettes lately.'})}}if(ch){kset('att',S.att);kset('adj',S.adj)}}
-function devN(a){const g=gapMin(a)*nb()/a.allow,d={};cigs().forEach(e=>{const k=dk(e.t,e.off);if(k>=a.start)(d[k]=d[k]||[]).push(e)});let n=0;Object.keys(d).sort().slice(-7).forEach(k=>{const c=d[k].sort((x,y)=>x.t-y.t);for(let i=1;i<c.length;i++)if(c[i].t<c[i-1].t+(g-30)*6e4)n++});return n}
+function devN(a){if(a.allow<=0)return 0;const d={};cigs().forEach(e=>{const k=dk(e.t,e.off);if(k>=a.start)(d[k]=d[k]||[]).push(e)});let n=0;Object.keys(d).sort().slice(-7).forEach(k=>{const c=d[k].sort((x,y)=>x.t-y.t);c.forEach((e,i)=>{const q=sched(a,k,c.slice(0,i));if(q!=null&&e.t<q-18e5)n++})});return n}
 const FB=()=>'<div class="card"><b>Smoking earlier than the windows?</b><div class="sub">Optional: what is behind it? This helps tune your windows.</div><div class="stk">'+['Strong craving','Social','Boredom','Stress','Timing unrealistic'].map(r=>`<button class="btn" data-a="fb" data-r="${r}">${r}</button>`).join('')+'<button class="btn" data-a="fb">Skip</button></div></div>';
 function extra(){const bd=byDay(),w={a:[],e:[]};Object.keys(S.conf).filter(k=>S.conf[k]).forEach(k=>w[[0,6].includes(new Date(k+'T12:00:00').getDay())?'e':'a'].push(bd[k]||0));const av=x=>(x.reduce((p,q)=>p+q,0)/x.length).toFixed(1),cc={};cigs().forEach(e=>{if(e.ctx)cc[e.ctx]=(cc[e.ctx]||0)+1});const ct=Object.entries(cc).sort((x,y)=>y[1]-x[1]).slice(0,3);
  return(w.a.length&&w.e.length?`<div class="stat"><span>Weekday average</span><b>${av(w.a)}</b></div><div class="stat"><span>Weekend average</span><b>${av(w.e)}</b></div>`:'')+bands()}
@@ -304,18 +327,18 @@ function render(){
  $('#cntsub').textContent=n===1?'cigarette today':'cigarettes today'+(cp&&n?' · about '+S.cfg.cur+(n*cp).toFixed(0):'');
  const te=S.ev.filter(e=>dk(e.t,e.off)===tk).sort((a,b)=>b.t-a.t),tc=te.filter(e=>e.type==='cig');
  $('#crv').textContent=S.ev.filter(e=>e.type==='crave').length;
- {const a=att(),h=$('#hero');h.className='card hero';$('#st').textContent='';if(a&&S.obs&&S.obs.done){adapt(a);const r=stat(a,n,tk);h.classList.add(r.c);$('#st').textContent=r.t;$('#cntsub').textContent=a.allow?'of '+a.allow+' allowed today'+(n<a.allow?' · '+(a.allow-n)+' left':''):'smoke-free goal today'}}
+ {const a=att(),h=$('#hero');h.className='card hero';$('#st').textContent='';NW=null;$('#cd').textContent='';$('#why').textContent='';if(a&&S.obs&&S.obs.done){const r=stat(a,n,tk);h.classList.add(r.c);$('#st').textContent=r.t;NW=r.at||null;$('#cd').textContent=r.at?hms(r.at-Date.now()):'';$('#why').textContent=r.at?(a.allow-n)+' left. Spread over your usual hours until '+hm(ds(tk)+endMin(a)*6e4)+', closer together when you usually smoke more.':'';$('#cntsub').textContent=a.allow?'of '+a.allow+' allowed today'+(n<a.allow?' · '+(a.allow-n)+' left':''):'smoke-free goal today'}}
  $('#strip').innerHTML=tc.map(e=>{const d=new Date(e.t+e.off*6e4),m=((d.getUTCHours()*60+d.getUTCMinutes())-S.cfg.cut*60+1440)%1440;return`<i class="tick${e.back?' b':''}" style="left:${m/14.4}%"></i>`}).join('');
  $('#tlist').innerHTML=tc.length?tc.map(e=>`<div class="it" data-id="${e.id}"><span>${hm(e.t)}</span>${e.back?'<span class="chip w">backdated</span>':'<span class="sub">tap to edit</span>'}</div>`).join(''):'<div class="empty">Nothing logged yet today.</div>';
  const p=pending();
- $('#pend').innerHTML=p.length?`<div class="card"><b>Confirm past days</b><div class="sub">Only confirmed days count toward your progress.</div>`+p.slice(0,3).map(k=>`<div class="cf"><span>${lab(k)} · <b>${bd[k]||0}</b> logged</span><button class="btn p" data-a="confirm" data-k="${k}">${bd[k]?'Confirm':'Yes, zero'}</button></div>`).join('')+(p.length>3?`<div class="sub">${p.length-3} more earlier</div>`:'')+'</div>':'';
- {const cb=$('#cb');cb.hidden=!CB;if(CB){const v=S.ev.find(z=>z.id===CB)||{};$('#cbx').innerHTML=CX.map(c=>`<button data-cx="${c}" class="${v.ctx===c?'on':''}">${c}</button>`).join('');$('#cbm').innerHTML=MD.map(c=>`<button data-mm="${c}" class="${v.mood===c?'on':''}">${c}</button>`).join('')}
+ $('#pend').innerHTML=p.length?`<div class="card"><b>Confirm past days</b><div class="sub">Only confirmed days count toward your progress.</div>`+p.slice(0,3).map(k=>`<div class="cf"><span>${lab(k)} · <b>${bd[k]||0}</b> logged</span><span style="display:flex;gap:8px"><button class="btn" data-a="notRight" data-k="${k}">No</button><button class="btn p" data-a="confirm" data-k="${k}">${bd[k]?'Yes':'Yes, zero'}</button></span></div>`).join('')+(p.length>3?`<div class="sub">${p.length-3} more earlier</div>`:'')+'</div>':'';
+ {const cb=$('#cb');cb.hidden=!CB||LD;if(CB){const v=S.ev.find(z=>z.id===CB)||{};$('#lx').innerHTML=$('#cbx').innerHTML=CX.map(c=>`<button data-cx="${c}" class="${v.ctx===c?'on':''}">${c}</button>`).join('');$('#lm').innerHTML=$('#cbm').innerHTML=MD.map(c=>`<button data-mm="${c}" class="${v.mood===c?'on':''}">${c}</button>`).join('')}
  $('#undo').hidden=!S.ev.length;const lc=cigs().reduce((m,e)=>e.t>m?e.t:m,0),dl=Date.now()-lc;$('#since').textContent=lc?'Last cigarette '+(dl>=36e5?Math.floor(dl/36e5)+'h ':'')+Math.floor(dl%36e5/6e4)+'m ago':'';$('#gr').innerHTML=chart()}
  const od=S.ev.length&&Date.now()-S.cfg.lastExp>7*864e5;$('#lastexp').textContent=S.cfg.lastExp?'Last export: '+new Date(S.cfg.lastExp).toLocaleDateString([],{day:'numeric',month:'short'})+(od?'. Time to export again.':''):'Never exported. Export weekly; clearing browser data erases everything.';$$('nav button')[2].classList.toggle('dot',!!od);
  // history
  const base=(S.obs&&S.obs.baseline!=null)?S.obs.baseline:S.cfg.base,cd=Object.keys(S.conf).filter(k=>S.conf[k]&&k<tk),tot=cd.reduce((s,k)=>s+(bd[k]||0),0),avg=cd.length?tot/cd.length:0,sav=cd.reduce((s,k)=>s+(base-(bd[k]||0)),0)*cp;
  $('#sum').innerHTML=`<div class="stat"><span>Confirmed days</span><b>${cd.length}</b></div><div class="stat"><span>Average per confirmed day</span><b>${cd.length?avg.toFixed(1):'–'}</b></div><div class="stat"><span>Cravings resisted</span><b>${S.ev.filter(e=>e.type==='crave').length}</b></div>`+(cp&&cd.length?`<div class="stat"><span>${sav>=0?'Estimated saved':'Estimated extra spend'}</span><b>${money(sav)}</b></div><div class="sub">Estimate from your baseline of ${+base.toFixed(1)} a day and pack price.</div>`:'');
- const d=new Date(tk+'T12:00:00Z'),rows=[];for(let i=0;i<14;i++){const k=d.toISOString().slice(0,10);rows.push(`<div class="it"><span>${lab(k)}</span><span><b>${bd[k]||0}</b> ${k===tk?'<span class="chip">today</span>':S.conf[k]?'<span class="chip">confirmed</span>':'<span class="chip w">incomplete</span>'}</span></div>`);d.setUTCDate(d.getUTCDate()-1)}
+ const d=new Date(tk+'T12:00:00Z'),rows=[];for(let i=0;i<14;i++){const k=d.toISOString().slice(0,10);rows.push(`<div class="it"><span>${lab(k)}</span><span><b>${bd[k]||0}</b> ${k===tk?'<span class="chip">today</span>':S.conf[k]?'<span class="chip">confirmed</span>':S.skip[k]?'<span class="chip w">skipped</span>':'<span class="chip w">incomplete</span>'}</span></div>`);d.setUTCDate(d.getUTCDate()-1)}
  $('#hlist').innerHTML=rows.join('');$('#ph').hidden=!S.att.length;$('#ph').innerHTML='<b>Phases</b>'+S.att.slice().reverse().map(a=>{const c=a.end?a:score(a,todayK());return`<div class="it"><span>Limit ${a.allow} · attempt ${a.n}</span><span>${c.el?c.ok+'/'+c.el+' days':'new'}${a.end?' · '+a.dec:''}</span></div>`}).join('');$('#pat').innerHTML=pat()+extra();{const w=weekly();$('#wk').hidden=!w;$('#wk').innerHTML=w}$('#aj').hidden=!S.adj.length;$('#aj').innerHTML='<b>Adjustment history</b>'+S.adj.slice(-8).reverse().map(x=>`<div class="it" style="display:block"><div>${x.txt}</div><div class="sub">${new Date(x.t).toLocaleDateString([],{day:'numeric',month:'short'})}</div></div>`).join('');
  [['#s-cut',S.cfg.cut],['#s-base',S.cfg.base],['#s-pack',S.cfg.pack],['#s-price',S.cfg.price||''],['#s-cur',S.cfg.cur],['#s-wk',S.cfg.wake||''],['#s-sl',S.cfg.sleep||'']].forEach(([i,v])=>{const el=$(i);if(document.activeElement!==el)el.value=v});
 }
@@ -323,7 +346,7 @@ function render(){
 (async()=>{db=await openDB();await load();render();
  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
- setInterval(()=>{if(!document.hidden)render()},20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()})})();
+ setInterval(()=>{if(!document.hidden)render()},20000);setInterval(()=>{if(NW&&!document.hidden){const d=NW-Date.now();if(d>0)$('#cd').textContent=hms(d);else{NW=null;render()}}if(LD&&LW){const d=LW-Date.now();$('#lcd').textContent=d>0?hms(d):'Open now'}},1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()})})();
 </script>
 </body>
 </html>
