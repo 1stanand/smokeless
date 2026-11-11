@@ -112,7 +112,7 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
     <button class="btn" style="width:100%" data-a="imp">Restore from backup</button>
     <input id="file" type="file" accept=".json,application/json" hidden>
     <p class="sub">Your data lives only in this browser on this phone. Export weekly.</p>
-    <p class="sub">App version 13</p>
+    <p class="sub">App version 14</p>
     <button class="btn" style="width:100%" data-a="hardRefresh">Force refresh app (keeps your data)</button>
     <button class="btn" style="width:100%" data-a="edit">Edit observation, phases and data</button>
   </div>
@@ -255,7 +255,7 @@ $('#mx').innerHTML='<option value="">Skip</option>'+CX.map(x=>`<option>${x}</opt
 function show(t){['today','hist','set'].forEach(x=>$('#v-'+x).hidden=x!==t);$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));scrollTo(0,0)}
 
 /* ---- render ---- */
-function pending(){const c=cigs();if(!c.length)return[];const f=c.reduce((a,b)=>b.t<a.t?b:a),fk=dk(f.t,f.off),d=new Date(todayK()+'T12:00:00Z'),out=[];
+function pending(){const c=cigs();if(!c.length)return[];const f=c.reduce((a,b)=>b.t<a.t?b:a),fk=S.obs?S.obs.start:dk(f.t,f.off),d=new Date(todayK()+'T12:00:00Z'),out=[];
  for(let i=0;i<60&&out.length<7;i++){d.setUTCDate(d.getUTCDate()-1);const k=d.toISOString().slice(0,10);if(k<fk)break;if(!S.conf[k]&&!S.skip[k])out.push(k)}return out}
 
 const dd=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
@@ -285,7 +285,7 @@ function nextWin(a,tk){if(a.allow<=0)return null;const td=cigs().filter(e=>dk(e.
  return{s:t-18e5,e:t+18e5}}
 let DM={};
 function dens(a){const key=a.id+'|'+S.att.length+'|'+S.ev.length+'|'+S.cfg.cut;if(DM.k===key)return DM.v;const c=pre(a),days=new Set(c.map(e=>dk(e.t,e.off))).size||1,h=Array(24).fill(0);c.forEach(e=>{h[(new Date(e.t+e.off*6e4).getUTCHours()-S.cfg.cut+24)%24]++});const sm=h.map((x,i)=>(h[(i+23)%24]*.25+x*.5+h[(i+1)%24]*.25)/days),u=sm.reduce((p,q)=>p+q,0)/24,w=Math.max(0,1-c.length/40),v=sm.map(x=>x*(1-w)+u*w+.02);DM={k:key,v};return v}
-function endMin(a){const l={};pre(a).forEach(e=>{const k=dk(e.t,e.off);if(!l[k]||e.t>l[k].t)l[k]=e});const m=Object.values(l).map(e=>{const d=new Date(e.t+e.off*6e4);return(d.getUTCHours()*60+d.getUTCMinutes()-S.cfg.cut*60+1440)%1440}).sort((x,y)=>x-y);let e=(m.length?m[Math.min(m.length-1,Math.floor(m.length*.75))]:0)+30;e=Math.max(e,tmin('21:00'));if(S.cfg.sleep)e=tmin(S.cfg.sleep);return Math.min(1439,Math.max(e,60))}
+function endMin(a){const l={};pre(a).forEach(e=>{const k=dk(e.t,e.off);if(!l[k]||e.t>l[k].t)l[k]=e});const m=Object.values(l).map(e=>{const d=new Date(e.t+e.off*6e4);return(d.getUTCHours()*60+d.getUTCMinutes()-S.cfg.cut*60+1440)%1440}).sort((x,y)=>x-y);let e=(m.length?m[Math.min(m.length-1,Math.floor(m.length*.75))]:0)+30;e=Math.max(e,tmin('21:00'));if(S.cfg.sleep){const sm=tmin(S.cfg.sleep);e=(sm<180||(S.cfg.wake&&sm<tmin(S.cfg.wake)))?1439:sm}return Math.min(1439,Math.max(e,60))}
 function mass(d,a,b){let t=0;for(let m=Math.max(0,Math.floor(a));m<b;m++)t+=d[Math.min(23,Math.floor(m/60))]/60;return t}
 function advance(d,from,target){let t=0;for(let m=Math.max(0,from);m<1440;m++){const v=d[Math.min(23,Math.floor(m/60))]/60;if(t+v>=target)return m+(target-t)/v;t+=v}return null}
 function spread(a,k,cs){const L=a.allow,n=cs.length,R=L-n;if(L<=0||R<=0)return null;const d=dens(a),base=ds(k);
