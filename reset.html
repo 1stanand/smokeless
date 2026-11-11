@@ -1,0 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Refresh SmokeLess</title>
+<body style="background:#050b0a;color:#f1f5f2;font:18px system-ui,sans-serif;padding:28px;line-height:1.5">
+<h3>Refreshing SmokeLess</h3>
+<p id="m">Working...</p>
+<script>
+(async()=>{let r=0,c=0;
+try{for(const x of await navigator.serviceWorker.getRegistrations()){await x.unregister();r++}}catch(e){}
+try{for(const k of await caches.keys()){await caches.delete(k);c++}}catch(e){}
+document.getElementById('m').textContent='Cleared '+r+' old app worker(s) and '+c+' cache(s). Your records were not touched. Opening the app...';
+setTimeout(()=>location.replace('./index.html?fresh='+Date.now()),1800)})();
+</script>

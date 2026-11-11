@@ -112,7 +112,8 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
     <button class="btn" style="width:100%" data-a="imp">Restore from backup</button>
     <input id="file" type="file" accept=".json,application/json" hidden>
     <p class="sub">Your data lives only in this browser on this phone. Export weekly.</p>
-    <p class="sub">App version 12</p>
+    <p class="sub">App version 13</p>
+    <button class="btn" style="width:100%" data-a="hardRefresh">Force refresh app (keeps your data)</button>
     <button class="btn" style="width:100%" data-a="edit">Edit observation, phases and data</button>
   </div>
 </section>
@@ -209,6 +210,7 @@ const A={
  cbDone(){CB=null;render()},
  edit(){const o=S.obs,a=att();$('#ee').textContent='';$('#erz').value='';$('#eo').hidden=!o;$('#ep').hidden=!a;$('#ero').hidden=!(o&&o.done);if(o){$('#eos').value=o.start;$('#eod').value=o.days}if(a){$('#epl').value=a.allow;$('#epd').value=a.days;$('#eps').value=a.start}$('#edlg').showModal()},
  notRight(){const k=this.dataset.k;pop('Not right? '+lab(k),`<div class="sub">You logged ${byDay()[k]||0} that day. What do you want to do?</div>`,[['Add a missed cigarette to that day','p',async()=>{openM({t:ds(k)+(12-S.cfg.cut)*36e5,off:offNow(),type:'cig',back:true},'Add a missed cigarette')}],['Skip this day (I did not track it)','',async()=>{S.skip[k]=true;await kset('skip',S.skip)}]],true)},
+ async hardRefresh(){try{for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister();for(const k of await caches.keys())await caches.delete(k)}catch(e){}location.replace('./index.html?fresh='+Date.now())},
  async wipe(){if(!confirm('Delete every record on this phone? This cannot be undone. Export first if unsure.'))return;await tx('ev','readwrite',s=>s.clear());await kset('conf',{});await kset('obs',null);S.obs=null;await kset('att',[]);S.att=[];await kset('adj',[]);S.adj=[];await kset('skip',{});S.skip={};S.ev=[];S.conf={};render();toast('All data deleted')}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a].call(b);const n=e.target.closest('[data-t]');if(n)show(n.dataset.t);const g=e.target.closest('[data-g]');if(g){GR=+g.dataset.g;render()}const cx=e.target.closest('[data-cx],[data-mm]');if(cx&&CB){const v=S.ev.find(z=>z.id===CB);if(v){const isC=cx.dataset.cx!==undefined,k=isC?'ctx':'mood',val=isC?cx.dataset.cx:cx.dataset.mm;v[k]=v[k]===val?'':val;upd(v).then(render)}}const i=e.target.closest('[data-id]');if(i){const ev=S.ev.find(x=>x.id==i.dataset.id);if(ev)openM({...ev},'Edit time')}});
