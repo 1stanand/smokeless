@@ -112,6 +112,7 @@ select{width:100%;font:16px var(--sans);padding:12px;border-radius:12px;border:1
     <button class="btn" style="width:100%" data-a="imp">Restore from backup</button>
     <input id="file" type="file" accept=".json,application/json" hidden>
     <p class="sub">Your data lives only in this browser on this phone. Export weekly.</p>
+    <p class="sub">App version 12</p>
     <button class="btn" style="width:100%" data-a="edit">Edit observation, phases and data</button>
   </div>
 </section>
@@ -345,7 +346,7 @@ function render(){
 
 (async()=>{db=await openDB();await load();render();
  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
- if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+ if('serviceWorker' in navigator){const had=navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!window.__r){window.__r=1;location.reload()}});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{})}
  setInterval(()=>{if(!document.hidden)render()},20000);setInterval(()=>{if(NW&&!document.hidden){const d=NW-Date.now();if(d>0)$('#cd').textContent=hms(d);else{NW=null;render()}}if(LD&&LW){const d=LW-Date.now();$('#lcd').textContent=d>0?hms(d):'Open now'}},1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()})})();
 </script>
 </body>
